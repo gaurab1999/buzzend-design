@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Complete Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/auth-flow.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+  <div class="screen-box">
+    <div class="screen flow">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="flow-nav"><a class="flow-back" href="index.html">←</a></div>
+
+      <h1 class="flow-title">Almost there</h1>
+      <p class="flow-sub">Tell us a bit about you to set up your profile.</p>
+
+      <div style="display:flex;justify-content:center">
+        <div class="avatar-pick" onclick="Buzzend.sheet({title:'Add photo',html:'<button class=&quot;btn btn-social&quot; style=&quot;margin-top:12px&quot;>Take photo</button><button class=&quot;btn btn-social&quot; style=&quot;margin-top:10px&quot;>Choose from gallery</button>'})">
+          <i data-icon="user" data-size="34"></i><span class="plus"><i data-icon="plus" data-size="15"></i></span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Name <span class="req">*</span></label>
+        <div class="field" id="nameField"><input id="name" type="text" placeholder="Your full name" /></div>
+        <div class="field-error" id="nameErr">Please enter your name.</div>
+      </div>
+
+      <div class="field-group" id="phoneGroup">
+        <label class="field-label">Phone number <span id="phoneReq" class="req">*</span></label>
+        <div class="field" id="phoneField">
+          <button type="button" class="country-select" data-iso="NP">
+            <span class="flag">🇳🇵</span><span class="ccode">+977</span><span class="chev">▾</span>
+          </button>
+          <span class="cc-divider"></span>
+          <input id="phone" type="tel" inputmode="numeric" placeholder="Phone number" />
+        </div>
+        <div class="field-error" id="phoneErr">Please enter your phone number.</div>
+        <div class="field-hint" id="phoneHint"></div>
+      </div>
+
+      <div class="flow-spacer"></div>
+      <button class="btn btn-primary" onclick="finish()">Create account →</button>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/components/country-picker.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    // adapt screen to how the user arrived
+    const via = new URLSearchParams(location.search).get("via") || "phone";
+    if (via === "phone") {
+      // came via phone → number known & verified, name required
+      document.getElementById("phone").value = "98•• •••• 21";
+      document.getElementById("phoneReq").style.display = "none";
+      document.getElementById("phoneHint").textContent = "Verified ✓";
+      document.getElementById("phoneHint").style.color = "var(--success)";
+    } else {
+      // came via Google/Apple → only ask for name; no phone field at all
+      document.getElementById("name").value = via === "google" ? "Ema William" : "";
+      document.getElementById("phoneGroup").style.display = "none";
+    }
+
+    function finish() {
+      const name = document.getElementById("name").value.trim();
+      // Name is the only required field; phone is never a blocker.
+      if (!name) { toggle("nameField", "nameErr", false); return; }
+      toggle("nameField", "nameErr", true);
+
+      const loader = Buzzend.loading("Creating your account…");
+      setTimeout(() => {
+        loader.close();
+        Buzzend.alert({ icon: "success", title: "You're all set!",
+          message: "Welcome to Buzzend, " + name.split(" ")[0] + ". Let's start moving.",
+          confirmLabel: "Go to Home",
+          onConfirm: () => { window.location.href = "../home/home.html?state=new"; } });
+      }, 1000);
+    }
+    function toggle(fieldId, errId, valid) {
+      document.getElementById(fieldId).classList.toggle("error", !valid);
+      document.getElementById(errId).classList.toggle("show", !valid);
+    }
+  </script>
+</body>
+</html>

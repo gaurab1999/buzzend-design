@@ -1,0 +1,64 @@
+/* Base shell + barrel that pulls in reusable components.
+   Reusable UI lives in css/components/ so every screen can share it. */
+@import url("components/icons.css");
+@import url("components/buttons.css");
+@import url("components/field.css");
+@import url("components/dialog.css");
+@import url("components/country-picker.css");
+@import url("components/bottom-nav.css");
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+/* Hide scrollbars on all scroll areas so the prototype matches a real device
+   (finger-scroll, no visible bar). Scrolling still works. */
+.screen-box, .screen, .cp-list, .bz-dialog, .bz-overlay { scrollbar-width: none; -ms-overflow-style: none; }
+.screen-box::-webkit-scrollbar, .screen::-webkit-scrollbar, .cp-list::-webkit-scrollbar,
+.bz-dialog::-webkit-scrollbar, .bz-overlay::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+body {
+  font-family: var(--font);
+  background: #dfe2e6;
+  color: var(--text-primary);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 24px;
+}
+[data-theme="dark"] body { background: #05080a; }
+
+/* Rectangular iOS-style screen box (no phone bezel) */
+.screen-box {
+  position: relative;
+  width: 390px;
+  min-height: 820px;
+  background: var(--bg-canvas);
+  border-radius: 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  transition: background 0.25s ease;
+}
+.screen-box .screen { position: relative; min-height: 820px; }
+
+/* minimal iOS status bar */
+.statusbar {
+  position: relative; height: 48px; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 22px; font-size: 14px;
+  font-weight: 800; color: var(--text-primary); z-index: 40;
+}
+
+@media (max-width: 430px) {
+  body { padding: 0; }
+  .screen-box { width: 100vw; min-height: 100vh; border-radius: 0; box-shadow: none; }
+}
+
+/* theme toggle */
+.theme-toggle {
+  position: fixed; top: 18px; right: 18px; z-index: 100;
+  background: var(--surface); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: var(--r-pill);
+  padding: 8px 14px; font: 600 13px var(--font); cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+/* buttons, fields, dialogs now live in css/components/ (imported above) */

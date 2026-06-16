@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Prototype Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/palettes.css" />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg-canvas); color: var(--text-primary); padding: 40px 24px; transition: background .25s, color .25s; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    h1 { font-size: 30px; font-weight: 900; }
+    .sub { color: var(--text-secondary); font-weight: 600; margin: 6px 0 24px; max-width: 680px; }
+    .theme-toggle { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);
+      border-radius: var(--r-pill); padding: 10px 16px; font: 700 13px var(--font); cursor: pointer; }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+      padding: 20px; box-shadow: var(--shadow-card); margin-bottom: 22px; }
+    .panel h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+    .panel .hint { font-size: 13px; color: var(--text-secondary); font-weight: 600; margin-bottom: 16px; }
+
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; }
+    .swatch { cursor: pointer; border: 2px solid var(--border); border-radius: var(--r-md);
+      padding: 12px; background: var(--bg-canvas); transition: transform .12s, border-color .15s; text-align: left; }
+    .swatch:hover { transform: translateY(-2px); }
+    .swatch.active { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+    .chips { display: flex; gap: 6px; margin-bottom: 10px; }
+    .chips i { width: 24px; height: 24px; border-radius: 7px; display: block; }
+    .swatch .name { font-weight: 800; font-size: 14px; }
+    .swatch .desc { font-size: 11.5px; color: var(--text-tertiary); font-weight: 600; }
+    .star { color: var(--accent); }
+
+    .fonts { display: flex; flex-wrap: wrap; gap: 10px; }
+    .fontbtn { cursor: pointer; border: 2px solid var(--border); border-radius: var(--r-pill);
+      padding: 9px 16px; background: var(--bg-canvas); color: var(--text-primary); font-weight: 800; font-size: 14px; }
+    .fontbtn.active { border-color: var(--primary); color: var(--primary); }
+    .ff-nunito{font-family:"Nunito"} .ff-inter{font-family:"Inter"} .ff-jakarta{font-family:"Plus Jakarta Sans"}
+    .ff-manrope{font-family:"Manrope"} .ff-space{font-family:"Space Grotesk"}
+    .ff-sfpro{font-family:-apple-system,"SF Pro Display",system-ui}
+
+    .preview { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+    .pv-btn { background: var(--primary); color: var(--on-primary); border: none; border-radius: var(--r-pill);
+      padding: 12px 22px; font: 800 14px var(--font); }
+    .pv-sec { background: var(--secondary); color: #fff; border: none; border-radius: var(--r-pill);
+      padding: 12px 22px; font: 800 14px var(--font); }
+    .pv-pill { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary);
+      border-radius: var(--r-pill); padding: 8px 14px; font: 800 13px var(--font); }
+    .pv-acc { background: var(--accent); color: #1b1b1b; border-radius: var(--r-pill); padding: 8px 14px; font: 800 13px var(--font); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+      padding: 18px; text-decoration: none; color: inherit; box-shadow: var(--shadow-card);
+      transition: transform .12s, box-shadow .2s; display: block; }
+    .card:hover { transform: translateY(-3px); }
+    .card.todo { opacity: .5; pointer-events: none; border-style: dashed; box-shadow: none; }
+    .tag { display:inline-block; font-size: 11px; font-weight: 800; letter-spacing:.5px;
+      color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); padding: 3px 8px; border-radius: 999px; }
+    .card h3 { font-size: 17px; font-weight: 800; margin: 10px 0 4px; }
+    .card p { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>⚡ Buzzend — Redesign</h1>
+        <p class="sub">Pick a color set and a font — your choice saves and applies to <b>every</b> screen. One token system drives the whole app, light &amp; dark.</p>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+
+    <!-- COLOR SETS -->
+    <div class="panel">
+      <h2>🎨 Color set</h2>
+      <p class="hint">5 modern fitness sets (full light + dark) + the current Teal. Click to apply live — each also sets its recommended font.</p>
+      <div class="swatches">
+        <button class="swatch" data-swatch="teal" onclick="setPalette('teal')">
+          <div class="chips"><i style="background:#008080"></i><i style="background:#0082ac"></i><i style="background:#ffa828"></i></div>
+          <div class="name">Teal <span class="desc">(current)</span></div><div class="desc">Existing brand</div>
+        </button>
+        <button class="swatch" data-swatch="neomint" onclick="setPalette('neomint')">
+          <div class="chips"><i style="background:#00c98d"></i><i style="background:#3b6eff"></i><i style="background:#0b0f14"></i></div>
+          <div class="name">Neo Mint <span class="star">🥇</span></div><div class="desc">Clean, premium · Inter</div>
+        </button>
+        <button class="swatch" data-swatch="electricblue" onclick="setPalette('electricblue')">
+          <div class="chips"><i style="background:#0099ff"></i><i style="background:#6c63ff"></i><i style="background:#08111f"></i></div>
+          <div class="name">Electric Blue <span class="star">🥉</span></div><div class="desc">Sporty · Jakarta Sans</div>
+        </button>
+        <button class="swatch" data-swatch="blackgold" onclick="setPalette('blackgold')">
+          <div class="chips"><i style="background:#f5b700"></i><i style="background:#ffda6a"></i><i style="background:#0d0d0d"></i></div>
+          <div class="name">Black &amp; Gold</div><div class="desc">Premium · SF Pro</div>
+        </button>
+        <button class="swatch" data-swatch="energyorange" onclick="setPalette('energyorange')">
+          <div class="chips"><i style="background:#ff6b00"></i><i style="background:#ff9f43"></i><i style="background:#111111"></i></div>
+          <div class="name">Energy Orange</div><div class="desc">High-energy · Inter</div>
+        </button>
+        <button class="swatch" data-swatch="aipurple" onclick="setPalette('aipurple')">
+          <div class="chips"><i style="background:#7c3aed"></i><i style="background:#22d3ee"></i><i style="background:#0a0a12"></i></div>
+          <div class="name">AI Purple &amp; Cyan <span class="star">🥈</span></div><div class="desc">Modern AI · Manrope</div>
+        </button>
+      </div>
+
+      <div class="preview">
+        <span style="font-weight:800;font-size:13px;color:var(--text-tertiary)">Live →</span>
+        <button class="pv-btn">Primary</button>
+        <button class="pv-sec">Secondary</button>
+        <span class="pv-pill">Active chip</span>
+        <span class="pv-acc">🏆 Achievement</span>
+      </div>
+    </div>
+
+    <!-- FONT -->
+    <div class="panel">
+      <h2>🔤 Font</h2>
+      <p class="hint">Auto-set by the color set, or override here.</p>
+      <div class="fonts">
+        <button class="fontbtn ff-nunito"  data-font-pick="nunito"  onclick="setFont('nunito')">Nunito (current)</button>
+        <button class="fontbtn ff-inter"   data-font-pick="inter"   onclick="setFont('inter')">Inter</button>
+        <button class="fontbtn ff-jakarta" data-font-pick="jakarta" onclick="setFont('jakarta')">Plus Jakarta Sans</button>
+        <button class="fontbtn ff-manrope" data-font-pick="manrope" onclick="setFont('manrope')">Manrope</button>
+        <button class="fontbtn ff-sfpro"   data-font-pick="sfpro"   onclick="setFont('sfpro')">SF Pro Display</button>
+        <button class="fontbtn ff-space"   data-font-pick="space"   onclick="setFont('space')">Space Grotesk</button>
+      </div>
+    </div>
+
+    <!-- SCREENS -->
+    <div class="grid">
+      <a class="card" href="screens/onboarding/index.html">
+        <span class="tag">START</span><h3>Splash &amp; Onboarding <span style="color:var(--text-tertiary);font-size:12px">· 6 variations</span></h3><p>Brand splash · app intro slides</p>
+      </a>
+      <a class="card" href="screens/auth/index.html">
+        <span class="tag">AUTH</span><h3>Login <span style="color:var(--text-tertiary);font-size:12px">· 4 variations</span></h3><p>Google · Apple · phone</p>
+      </a>
+      <a class="card" href="screens/home/index.html">
+        <span class="tag">HOME</span><h3>Home <span style="color:var(--text-tertiary);font-size:12px">· 7 layouts</span></h3><p>Workout-first · V1–V3 + premium V4–V7 · New/Partial/Full</p>
+      </a>
+      <div class="card todo"><span class="tag">CHALLENGE</span><h3>Create Challenge</h3><p>3-step flow</p></div>
+      <div class="card todo"><span class="tag">LEADERBOARD</span><h3>Leaderboard</h3><p>Queued</p></div>
+      <div class="card todo"><span class="tag">DAILY</span><h3>Daily Challenge</h3><p>Queued</p></div>
+      <div class="card todo"><span class="tag">PROFILE</span><h3>Profile + Stats</h3><p>Queued</p></div>
+    </div>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>

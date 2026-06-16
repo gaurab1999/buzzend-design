@@ -1,0 +1,30 @@
+/* Country picker sheet — builds on .bz-overlay.sheet / .bz-dialog (dialog.css) */
+/* Fixed height so the sheet stays put while the search filters the list
+   (otherwise it resizes to content on every keystroke and appears to collapse). */
+.cp-sheet { height: 72%; display: flex; flex-direction: column; padding: 18px 0 0; }
+.cp-title { font: 800 17px var(--font); color: var(--text-primary); text-align: center; padding: 0 22px 12px; }
+
+.cp-searchwrap {
+  display: flex; align-items: center; gap: 8px; margin: 0 18px 8px;
+  background: var(--surface-alt); border-radius: var(--r-md); padding: 0 14px; height: 46px;
+}
+.cp-searchwrap span { color: var(--text-tertiary); font-size: 14px; }
+.cp-search { flex: 1; border: none; outline: none; background: transparent;
+  font: 600 15px var(--font); color: var(--text-primary); }
+.cp-search::placeholder { color: var(--text-tertiary); }
+
+/* flex:1 fills the remaining sheet height; list scrolls internally, sheet stays fixed */
+.cp-list { flex: 1; overflow-y: auto; padding: 4px 10px 12px; -webkit-overflow-scrolling: touch; }
+.cp-row { width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 12px;
+  border: none; background: transparent; cursor: pointer; border-radius: var(--r-sm); text-align: left; }
+.cp-row:hover { background: var(--surface-alt); }
+.cp-row .fl { font-size: 22px; }
+.cp-row .nm { flex: 1; font: 700 15px var(--font); color: var(--text-primary); }
+.cp-row .dc { font: 700 14px var(--font); color: var(--text-tertiary); }
+.cp-row.active { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.cp-row.active .nm, .cp-row.active .dc { color: var(--primary); }
+
+/* the tappable flag+code group inside .field */
+.country-select { display: flex; align-items: center; gap: 8px; border: none; background: transparent;
+  cursor: pointer; padding: 0; font: inherit; }
+.country-select .chev { color: var(--text-tertiary); font-size: 12px; margin-left: 2px; }

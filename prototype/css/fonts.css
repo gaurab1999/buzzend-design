@@ -1,0 +1,10 @@
+/* Selectable fonts. Default (Nunito) stays the current brand font.
+   Picking a color set auto-applies its recommended font; the font picker
+   lets you override independently. Persisted via js/app.js. */
+[data-font="nunito"]  { --font: "Nunito", -apple-system, BlinkMacSystemFont, sans-serif; }
+[data-font="inter"]   { --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif; }
+[data-font="jakarta"] { --font: "Plus Jakarta Sans", -apple-system, sans-serif; }
+[data-font="manrope"] { --font: "Manrope", -apple-system, sans-serif; }
+[data-font="space"]   { --font: "Space Grotesk", -apple-system, sans-serif; }
+/* SF Pro Display isn't on Google Fonts — use the Apple system stack (native on iOS/macOS) */
+[data-font="sfpro"]   { --font: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, sans-serif; }

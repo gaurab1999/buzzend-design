@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Login Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg-canvas); color: var(--text-primary); padding: 36px 24px; transition: background .25s; }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    a.back { color: var(--text-secondary); font-weight: 700; text-decoration: none; font-size: 14px; }
+    h1 { font-size: 28px; font-weight: 900; margin-top: 6px; }
+    .sub { color: var(--text-secondary); font-weight: 600; margin: 6px 0 26px; }
+    .theme-toggle { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);
+      border-radius: var(--r-pill); padding: 10px 16px; font: 700 13px var(--font); cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 26px; }
+    .item { text-align: center; }
+    .frame { width: 100%; height: 470px; border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--shadow-card); border: 1px solid var(--border); position: relative; background: var(--surface); }
+    .frame iframe { width: 390px; height: 820px; border: 0; transform: scale(.56); transform-origin: top left;
+      position: absolute; top: 0; left: 50%; margin-left: -109px; }
+    .item h3 { font-size: 16px; font-weight: 800; margin-top: 14px; }
+    .item p { font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
+    .item a.open { display: inline-block; margin-top: 8px; color: var(--primary); font-weight: 800; font-size: 13px; text-decoration: none; }
+    .note { margin-top: 26px; font-size: 13px; color: var(--text-tertiary); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="back" href="../../index.html">← Home</a><h1>Login — variations</h1></div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+    <p class="sub">Four layouts, same components &amp; tokens. Your selected color set + font apply to all. Click a preview to open it full-size (and try the phone “Continue” → reusable popup).</p>
+
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="login.html" scrolling="no"></iframe></div>
+        <h3>V1 · Hero + Sheet</h3>
+        <p>Gradient hero, white auth sheet</p>
+        <a class="open" href="login.html">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="login-v2.html" scrolling="no"></iframe></div>
+        <h3>V2 · Minimal Centered</h3>
+        <p>Airy, Apple-like, lots of space</p>
+        <a class="open" href="login-v2.html">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="login-v3.html" scrolling="no"></iframe></div>
+        <h3>V3 · Bold Glass Card</h3>
+        <p>Full gradient + glassmorphism</p>
+        <a class="open" href="login-v3.html">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="login-v4.html" scrolling="no"></iframe></div>
+        <h3>V4 · Feature-led</h3>
+        <p>Value props + auth sheet + bottom-sheet</p>
+        <a class="open" href="login-v4.html">Open full →</a>
+      </div>
+    </div>
+
+    <h2 style="font-size:20px;font-weight:900;margin:34px 0 4px">Auth flow &amp; states</h2>
+    <p class="sub" style="margin-bottom:20px">The full journey + every success/fail case. Open a login above and try Google/Apple or phone → it routes through these.</p>
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="verify-otp.html" scrolling="no"></iframe></div>
+        <h3>Verify OTP</h3>
+        <p>Code <b>123456</b> = success · others = inline error · resend timer</p>
+        <a class="open" href="verify-otp.html">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="complete-profile.html?via=google" scrolling="no"></iframe></div>
+        <h3>Complete Profile</h3>
+        <p>Name required (empty = error) · phone · success → “All set”</p>
+        <a class="open" href="complete-profile.html?via=google">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="login-v2.html?demo=fail" scrolling="no"></iframe></div>
+        <h3>Sign-in FAIL case</h3>
+        <p>Same screen with <code>?demo=fail</code> → Google/Apple show the error dialog + retry</p>
+        <a class="open" href="login-v2.html?demo=fail">Open fail demo →</a>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 18px;margin-top:24px">
+      <b style="font-size:14px">Flow map</b>
+      <p style="font-size:13px;color:var(--text-secondary);font-weight:600;line-height:1.7;margin-top:6px">
+        <b>Google/Apple</b> → loading → <b>success</b> → Complete Profile → “All set” · or <b>fail</b> → error dialog (Try again)<br/>
+        <b>Phone</b> → Send code → <b>Verify OTP</b> → <b>success</b> (123456) → Complete Profile · or <b>fail</b> → inline “Incorrect code”
+      </p>
+    </div>
+
+    <p class="note">Everything reuses <code>css/components/</code> + <code>js/components/</code> (dialog, country-picker, otp, auth-flow).</p>
+  </div>
+  <script src="../../js/app.js"></script>
+</body>
+</html>

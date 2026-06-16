@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Home V6 · Momentum</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/home.css" />
+  <link rel="stylesheet" href="../../css/screens/home-pro.css" />
+</head>
+<body>
+  <div class="state-switch">
+    <button data-st="new" onclick="setState('new')">New</button>
+    <button data-st="partial" onclick="setState('partial')">Partial</button>
+    <button data-st="full" onclick="setState('full')">Full</button>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:64px">🌙</button>
+
+  <div class="screen-box">
+    <div class="screen home">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="home-header">
+        <div class="hh-avatar" style="background-image:linear-gradient(135deg,#6a8caf,#33566f)"></div>
+        <div class="hh-greet"><div class="hi" id="hi">Good morning 👋</div><div class="nm">Ema William</div></div>
+        <button class="hh-btn"><i data-icon="search" data-size="19"></i></button>
+        <button class="hh-btn" id="bell"><i data-icon="bell" data-size="19"></i><span class="dot"></span></button>
+      </div>
+      <div class="scroll" id="content"></div>
+    </div>
+    <div class="bottom-nav">
+      <a class="nav-item active"><span class="ic"><i data-icon="home" data-size="22"></i></span>Home</a>
+      <a class="nav-item"><span class="ic"><i data-icon="trophy" data-size="22"></i></span>Challenges</a>
+      <div class="nav-fab"><button><i data-icon="plus" data-size="26"></i></button></div>
+      <a class="nav-item"><span class="ic"><i data-icon="activity" data-size="22"></i></span>Activity</a>
+      <a class="nav-item"><span class="ic"><i data-icon="user" data-size="22"></i></span>Profile</a>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/home-data.js"></script>
+  <script src="../../js/screens/home-pro.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const H = HomeData, P = HomePro;
+    function render(state) {
+      const d = H.DATA[state];
+      document.getElementById("hi").textContent = d.greeting;
+      document.getElementById("bell").querySelector(".dot").style.display = d.bell ? "block" : "none";
+      let h = P.aiMomentum(state, d)         // TOP — bold streak-forward hero + CTA
+        + P.todayCard(state, d, "hero")      // COMBINED: momentum hero + glass stats + today's workouts (grid)
+        + (state === "new" ? H.checklist() : "")
+        + P.leaderPodium(state, d)           // friends leaderboard (competitive podium)
+        + H.challenges(state, d)             // active challenges
+        + H.workoutPicker()
+        + P.feed(state, d);                  // community video feed · likes/views/share
+      document.getElementById("content").innerHTML = h;
+      window.Icons.init(document.getElementById("content"));
+      document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.st === state));
+    }
+    function setState(s){ render(s); }
+    render(new URLSearchParams(location.search).get("state") || "full");
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+/* Layouts for login variations V2–V4. Colors/fonts come from tokens. */
+
+/* ───────── V2 · Minimal centered (balanced brand lockup) ───────── */
+.lv2 { display: flex; flex-direction: column; min-height: 820px; padding: 0 28px 28px; }
+.lv2 .statusbar { padding-left: 0; padding-right: 0; }
+/* center the whole composition so whitespace reads as intentional breathing room */
+.lv2-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.lv2-brand { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.lv2-icon { width: 76px; height: 76px; border-radius: 22px; background: var(--hero-grad);
+  display: grid; place-items: center; color: #fff; margin-bottom: 20px;
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 38%, transparent); }
+.lv2-icon svg { width: 40px; height: 40px; }
+.lv2-title { font-size: 27px; font-weight: 900; line-height: 1.15; }
+.lv2-sub { font-size: 14.5px; font-weight: 600; color: var(--text-secondary); margin-top: 8px; max-width: 280px; }
+.lv2-auth { margin-top: 40px; display: flex; flex-direction: column; gap: 13px; }
+.lv2 .terms { text-align: center; font-size: 12.5px; font-weight: 600; color: var(--text-tertiary); line-height: 1.5; margin-top: 20px; }
+
+/* ───────── V3 · Bold full gradient + glass card ───────── */
+.lv3 { display: flex; flex-direction: column; min-height: 820px; padding: 0 22px 26px;
+  background: var(--hero-grad); color: #fff; }
+.lv3 .statusbar { color: #fff; padding-left: 0; padding-right: 0; }
+.lv3-brand { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.lv3-brand svg { width: 30px; height: 30px; }
+.lv3-brand .wordmark { font-weight: 900; letter-spacing: 2px; font-size: 20px; }
+.lv3-hero { margin: 30px 0; }
+.lv3-hero h1 { font-size: 34px; font-weight: 900; line-height: 1.1; }
+.lv3-hero p { margin-top: 10px; font-size: 15px; font-weight: 600; opacity: .92; max-width: 250px; }
+.lv3-card { margin-top: auto; background: rgba(255,255,255,0.16); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.28); border-radius: 24px; padding: 22px;
+  display: flex; flex-direction: column; gap: 12px; }
+.lv3-card .sheet-title { color: #fff; font-size: 18px; font-weight: 800; }
+.lv3-card .divider { color: rgba(255,255,255,.8); }
+.lv3-card .divider::before, .lv3-card .divider::after { background: rgba(255,255,255,.35); }
+.lv3-card .btn-social { background: rgba(255,255,255,0.95); color: #1c1c1c; border: none; }
+.lv3-card .field { background: rgba(255,255,255,0.95); border: none; }
+.lv3-card .field input { color: #1c1c1c; }
+.lv3-card .btn-primary { background: #fff; color: var(--primary); box-shadow: none; }
+.lv3 .terms { text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.85); margin-top: 14px; }
+.lv3 .terms .link { color: #fff; text-decoration: underline; }
+
+/* ───────── V4 · Feature-led (value props on top, auth sheet below) ───────── */
+.lv4 { display: flex; flex-direction: column; min-height: 820px; }
+.lv4-head { padding: 6px 26px 26px; background: color-mix(in srgb, var(--primary) 8%, var(--bg-canvas)); }
+.lv4-head .statusbar { padding-left: 0; padding-right: 0; }
+.lv4-brand { display: flex; align-items: center; gap: 10px; margin: 8px 0 22px; }
+.lv4-brand svg { width: 30px; height: 30px; }
+.lv4-brand .wordmark { font-weight: 900; letter-spacing: 2px; font-size: 20px; color: var(--text-primary); }
+.lv4-title { font-size: 25px; font-weight: 900; line-height: 1.15; margin-bottom: 18px; }
+.lv4-feature { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.lv4-feature .ic { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
+  font-size: 22px; background: var(--surface); box-shadow: var(--shadow-card); }
+.lv4-feature .ft-t { font-weight: 800; font-size: 15px; }
+.lv4-feature .ft-d { font-weight: 600; font-size: 12.5px; color: var(--text-secondary); }
+.lv4-sheet { flex: 1; background: var(--surface); border-radius: 26px 26px 0 0; margin-top: -16px;
+  padding: 24px 24px 28px; box-shadow: var(--shadow-sheet); display: flex; flex-direction: column; gap: 12px; }
+.lv4-sheet .sheet-title { font-size: 18px; font-weight: 800; }
+.lv4 .terms { text-align: center; font-size: 12.5px; font-weight: 600; color: var(--text-tertiary);
+  line-height: 1.5; margin-top: auto; }

@@ -1,0 +1,104 @@
+/* Selectable color SETS — each defines a full Light + Dark system
+   (background / surface / card / primary / secondary / text / subtext)
+   plus a hero gradient and a recommended font.
+
+   Pick one on the Home screen → persists to every screen (js/app.js).
+   Dark overrides use [data-palette][data-theme="dark"] (higher specificity
+   than the base dark block in tokens.css), so they always win.
+
+   "Teal (current)" is left exactly as the existing brand. */
+
+/* ───────────────────────── 1 · TEAL (current — unchanged) ───────────────────────── */
+[data-palette="teal"] {
+  --primary: #008080; --primary-deep: #006666; --secondary: #0082ac; --accent: #ffa828;
+}
+
+/* ───────────────────────── 2 · NEO MINT (recommended) ── font: Inter ── */
+[data-palette="neomint"] {
+  --primary: #00c98d; --primary-deep: #00a374; --secondary: #3b6eff; --accent: #3b6eff;
+  --on-primary: #052b20;
+  --bg-canvas: #f8fafc; --surface: #ffffff; --surface-alt: #eef2f7;
+  --text-primary: #0f172a; --text-secondary: #64748b; --text-tertiary: #94a3b8;
+  --border: #e2e8f0; --divider: #eef2f7;
+  --hero-grad: linear-gradient(150deg, #00c98d 0%, #3b6eff 100%);
+}
+[data-palette="neomint"][data-theme="dark"] {
+  --primary: #00e5a8; --primary-deep: #00b585; --secondary: #4f7cff; --accent: #4f7cff;
+  --on-primary: #04231a;
+  --bg-canvas: #0b0f14; --surface: #161b22; --surface-alt: #1e242d;
+  --text-primary: #f8fafc; --text-secondary: #94a3b8; --text-tertiary: #64748b;
+  --border: #1e242d; --divider: #1e242d;
+  --hero-grad: linear-gradient(150deg, #00e5a8 0%, #4f7cff 100%);
+}
+
+/* ───────────────────────── 3 · ELECTRIC BLUE ── font: Plus Jakarta Sans ── */
+[data-palette="electricblue"] {
+  --primary: #0099ff; --primary-deep: #0077cc; --secondary: #6c63ff; --accent: #6c63ff;
+  --on-primary: #ffffff;
+  --bg-canvas: #f4f9ff; --surface: #ffffff; --surface-alt: #eaf3ff;
+  --text-primary: #0a2540; --text-secondary: #61748b; --text-tertiary: #94a3b8;
+  --border: #dbe8f7; --divider: #eaf3ff;
+  --hero-grad: linear-gradient(150deg, #0099ff 0%, #6c63ff 100%);
+}
+[data-palette="electricblue"][data-theme="dark"] {
+  --primary: #00d4ff; --primary-deep: #0099cc; --secondary: #6c63ff; --accent: #6c63ff;
+  --on-primary: #02212e;
+  --bg-canvas: #08111f; --surface: #122033; --surface-alt: #18283d;
+  --text-primary: #ffffff; --text-secondary: #a3b1c6; --text-tertiary: #6b7e96;
+  --border: #18283d; --divider: #18283d;
+  --hero-grad: linear-gradient(150deg, #00d4ff 0%, #6c63ff 100%);
+}
+
+/* ───────────────────────── 4 · PREMIUM BLACK & GOLD ── font: SF Pro Display ── */
+[data-palette="blackgold"] {
+  --primary: #d49a00; --primary-deep: #a87a00; --secondary: #f5b700; --accent: #f5b700;
+  --on-primary: #1c1c1c;
+  --bg-canvas: #fffdf8; --surface: #ffffff; --surface-alt: #f8f4e7;
+  --text-primary: #1c1c1c; --text-secondary: #6b6b6b; --text-tertiary: #a39b88;
+  --border: #ece4cf; --divider: #f8f4e7;
+  --hero-grad: linear-gradient(155deg, #2b2b2b 0%, #0d0d0d 100%);
+}
+[data-palette="blackgold"][data-theme="dark"] {
+  --primary: #f5b700; --primary-deep: #c8960a; --secondary: #ffda6a; --accent: #ffda6a;
+  --on-primary: #1c1500;
+  --bg-canvas: #0d0d0d; --surface: #171717; --surface-alt: #222222;
+  --text-primary: #fafafa; --text-secondary: #b5b5b5; --text-tertiary: #7a7a7a;
+  --border: #222222; --divider: #222222;
+  --hero-grad: linear-gradient(155deg, #222222 0%, #0d0d0d 100%);
+}
+
+/* ───────────────────────── 5 · ENERGY ORANGE ── font: Inter ── */
+[data-palette="energyorange"] {
+  --primary: #ff6b00; --primary-deep: #e25a00; --secondary: #ff8e3c; --accent: #ff9f43;
+  --on-primary: #ffffff;
+  --bg-canvas: #fff8f2; --surface: #ffffff; --surface-alt: #ffe8d6;
+  --text-primary: #222222; --text-secondary: #6b7280; --text-tertiary: #a8a29e;
+  --border: #f5ddc8; --divider: #ffe8d6;
+  --hero-grad: linear-gradient(150deg, #ff6b00 0%, #ff9f43 100%);
+}
+[data-palette="energyorange"][data-theme="dark"] {
+  --primary: #ff6b00; --primary-deep: #cc5500; --secondary: #ff9f43; --accent: #ff9f43;
+  --on-primary: #1a0d00;
+  --bg-canvas: #111111; --surface: #1a1a1a; --surface-alt: #242424;
+  --text-primary: #ffffff; --text-secondary: #bdbdbd; --text-tertiary: #7a7a7a;
+  --border: #242424; --divider: #242424;
+  --hero-grad: linear-gradient(150deg, #ff6b00 0%, #ff9f43 100%);
+}
+
+/* ───────────────────────── 6 · AI PURPLE & CYAN ── font: Manrope ── */
+[data-palette="aipurple"] {
+  --primary: #7c3aed; --primary-deep: #6024c4; --secondary: #0891b2; --accent: #22d3ee;
+  --on-primary: #ffffff;
+  --bg-canvas: #f8faff; --surface: #ffffff; --surface-alt: #eef2ff;
+  --text-primary: #111827; --text-secondary: #6b7280; --text-tertiary: #9ca3af;
+  --border: #e3e8f5; --divider: #eef2ff;
+  --hero-grad: linear-gradient(150deg, #7c3aed 0%, #0891b2 100%);
+}
+[data-palette="aipurple"][data-theme="dark"] {
+  --primary: #8b5cf6; --primary-deep: #6d3fd4; --secondary: #22d3ee; --accent: #22d3ee;
+  --on-primary: #150a2e;
+  --bg-canvas: #0a0a12; --surface: #131a2a; --surface-alt: #1a2236;
+  --text-primary: #ffffff; --text-secondary: #a5b4fc; --text-tertiary: #6b7280;
+  --border: #1a2236; --divider: #1a2236;
+  --hero-grad: linear-gradient(150deg, #8b5cf6 0%, #22d3ee 100%);
+}

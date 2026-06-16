@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Home variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg-canvas); color: var(--text-primary); padding: 36px 24px; }
+    .wrap { max-width: 1140px; margin: 0 auto; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    a.back { color: var(--text-secondary); font-weight: 700; text-decoration: none; font-size: 14px; }
+    h1 { font-size: 28px; font-weight: 900; margin-top: 6px; }
+    .sub { color: var(--text-secondary); font-weight: 600; margin: 6px 0 24px; max-width: 720px; }
+    .theme-toggle { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);
+      border-radius: var(--r-pill); padding: 10px 16px; font: 700 13px var(--font); cursor: pointer; }
+    h2.grp { font-size: 18px; font-weight: 900; margin: 28px 0 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 26px; }
+    .item { text-align: center; }
+    .frame { width: 100%; height: 500px; border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--shadow-card); border: 1px solid var(--border); position: relative; background: var(--surface); }
+    .frame iframe { width: 390px; height: 880px; border: 0; transform: scale(.60); transform-origin: top left;
+      position: absolute; top: 0; left: 50%; margin-left: -117px; }
+    .item h3 { font-size: 16px; font-weight: 800; margin-top: 14px; }
+    .item p { font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
+    .item a.open { display: inline-block; margin-top: 8px; color: var(--primary); font-weight: 800; font-size: 13px; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="back" href="../../index.html">← Home launcher</a><h1>Home — layout variations</h1></div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+    <p class="sub">Six workout-first layouts + all data states. Each shows multiple workouts per day. All share the token system, so your chosen color set, font, and light/dark apply everywhere.</p>
+
+    <h2 class="grp">✨ Premium redesign (V4–V6) — new</h2>
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="home-v4.html?state=full" scrolling="no"></iframe></div>
+        <h3>V4 · Focus</h3><p>Combined goal hero (ring + all stats + share) + AI band</p>
+        <a class="open" href="home-v4.html?state=full">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home-v5.html?state=full" scrolling="no"></iframe></div>
+        <h3>V5 · Pulse</h3><p>Linear goal + scannable metric tiles · data-first</p>
+        <a class="open" href="home-v5.html?state=full">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home-v6.html?state=full" scrolling="no"></iframe></div>
+        <h3>V6 · Momentum</h3><p>Motivational hero + leaderboard-forward · social</p>
+        <a class="open" href="home-v6.html?state=full">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home-v7.html?state=full" scrolling="no"></iframe></div>
+        <h3>V7 · Pulse + Momentum</h3><p>V5 body with V6's bold streak-forward top</p>
+        <a class="open" href="home-v7.html?state=full">Open full →</a>
+      </div>
+    </div>
+
+    <h2 class="grp">Original layouts (full data)</h2>
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="home.html?state=full" scrolling="no"></iframe></div>
+        <h3>V1 · Dashboard</h3><p>Hero + picker + workout log + progress + social</p>
+        <a class="open" href="home.html?state=full">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home-v2.html" scrolling="no"></iframe></div>
+        <h3>V2 · Activity rings</h3><p>3 rings + prominent daily workout log</p>
+        <a class="open" href="home-v2.html">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home-v3.html" scrolling="no"></iframe></div>
+        <h3>V3 · Bento grid</h3><p>Card grid: workout, streak, reps, steps</p>
+        <a class="open" href="home-v3.html">Open full →</a>
+      </div>
+    </div>
+
+    <h2 class="grp">Data states (V1)</h2>
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="home.html?state=new" scrolling="no"></iframe></div>
+        <h3>New user</h3><p>Onboarding checklist + guided empty states</p>
+        <a class="open" href="home.html?state=new">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home.html?state=partial" scrolling="no"></iframe></div>
+        <h3>Partial data</h3><p>Some workouts, social still empty w/ CTAs</p>
+        <a class="open" href="home.html?state=partial">Open full →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="home.html?state=full" scrolling="no"></iframe></div>
+        <h3>Full data</h3><p>Everything populated</p>
+        <a class="open" href="home.html?state=full">Open full →</a>
+      </div>
+    </div>
+  </div>
+  <script src="../../js/app.js"></script>
+</body>
+</html>

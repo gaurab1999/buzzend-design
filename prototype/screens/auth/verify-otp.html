@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Verify OTP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/auth-flow.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+  <div class="screen-box">
+    <div class="screen flow">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="flow-nav"><a class="flow-back" href="index.html">←</a></div>
+
+      <div class="flow-icon" style="color:var(--primary)"><i data-icon="phone" data-size="28"></i></div>
+      <h1 class="flow-title">Enter the 6-digit code</h1>
+      <p class="flow-sub">Sent to +977 98•• •••• 21 &nbsp;<a class="edit" href="index.html">Edit</a><br/>
+        <span style="font-size:12.5px;color:var(--text-tertiary)">Tip: use <b>123456</b> to succeed, anything else to see the error.</span></p>
+
+      <div class="otp-row" id="otp">
+        <input class="otp-box" type="tel" /><input class="otp-box" type="tel" /><input class="otp-box" type="tel" />
+        <input class="otp-box" type="tel" /><input class="otp-box" type="tel" /><input class="otp-box" type="tel" />
+      </div>
+      <div class="otp-msg" id="msg"></div>
+
+      <div class="otp-resend" id="resend">Didn't get it? <span class="disabled">Resend in 0:30</span></div>
+
+      <div class="flow-spacer"></div>
+      <button class="btn btn-primary" id="verifyBtn" onclick="doVerify()" style="opacity:.5" disabled>Verify →</button>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/components/otp.js"></script>
+  <script src="../../js/components/auth-flow.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const row = document.getElementById("otp");
+    const btn = document.getElementById("verifyBtn");
+    const msg = document.getElementById("msg");
+
+    row.addEventListener("otp-change", (e) => {
+      const full = e.detail.code.length === 6;
+      btn.disabled = !full; btn.style.opacity = full ? 1 : .5;
+      msg.className = "otp-msg"; msg.textContent = "";
+    });
+    row.addEventListener("otp-complete", doVerify);
+
+    function doVerify() {
+      const code = Buzzend.otpValue(row);
+      if (code.length < 6) return;
+      if (Auth.verify(code)) {
+        msg.className = "otp-msg ok"; msg.textContent = "✓ Verified";
+        const loader = Buzzend.loading("Verifying…");
+        setTimeout(() => { loader.close(); window.location.href = "complete-profile.html?via=phone"; }, 800);
+      } else {
+        row.classList.add("error");
+        msg.className = "otp-msg err"; msg.textContent = "Incorrect code. Please try again.";
+        setTimeout(() => Buzzend.otpReset(row), 700);
+      }
+    }
+
+    // resend countdown
+    let t = 30; const el = document.getElementById("resend");
+    const timer = setInterval(() => {
+      t--;
+      if (t <= 0) {
+        clearInterval(timer);
+        el.innerHTML = "Didn't get it? <span class='link'><a class='edit' href='#' onclick='restart();return false'>Resend code</a></span>";
+      } else {
+        el.innerHTML = "Didn't get it? <span class='disabled'>Resend in 0:" + (t < 10 ? "0" : "") + t + "</span>";
+      }
+    }, 1000);
+    function restart(){ Buzzend.alert({ icon:"phone", title:"Code re-sent", message:"A new 6-digit code is on its way to +977 98•• •••• 21." }); }
+  </script>
+</body>
+</html>

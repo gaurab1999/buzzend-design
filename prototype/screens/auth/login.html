@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/login.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+
+  <div class="screen-box">
+    <div class="screen">
+      <!-- HERO -->
+      <section class="auth-hero">
+        <div class="statusbar" style="color:#fff;padding-left:0;padding-right:0;margin-bottom:4px"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+        <div class="brand">
+          <!-- lightning bolt logo -->
+          <svg viewBox="0 0 24 24" fill="none"><path d="M13.5 2 4 13.2h6.2L9 22l9.5-11.7H12L13.5 2Z" fill="#fff"/><path d="M13.5 2 4 13.2h6.2L9 22" stroke="#34d094" stroke-width="1.4" stroke-linejoin="round" fill="none"/></svg>
+          <span class="wordmark">BUZZEND</span>
+        </div>
+
+        <div class="hero-emojis">
+          <span><i data-icon="footprints" data-size="20"></i></span><span><i data-icon="dumbbell" data-size="20"></i></span><span><i data-icon="trophy" data-size="20"></i></span><span><i data-icon="flame" data-size="20"></i></span>
+        </div>
+
+        <h1 class="hero-title">Move more.<br/>Compete. Win.</h1>
+        <p class="hero-sub">Join challenges, track your streak, and climb the leaderboard with friends.</p>
+      </section>
+
+      <!-- AUTH SHEET -->
+      <section class="auth-sheet">
+        <div class="grip"></div>
+        <h2 class="sheet-title">Welcome to Buzzend</h2>
+        <p class="sheet-sub">Sign in or create an account to get started</p>
+
+        <button class="btn btn-social" onclick="Auth.social('Google')">
+          <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5 17.4 35.5 12 30.1 12 23.5S17.4 11.5 24 11.5c3 0 5.8 1.1 7.9 3l5.7-5.7C34 5.1 29.3 3.5 24 3.5 12.9 3.5 4 12.4 4 23.5s8.9 20 20 20c11 0 19.5-8 19.5-20 0-1.3-.1-2.3-.4-3z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 11.5 24 11.5c3 0 5.8 1.1 7.9 3l5.7-5.7C34 5.1 29.3 3.5 24 3.5 16.3 3.5 9.6 7.9 6.3 14.7z"/><path fill="#4CAF50" d="M24 43.5c5.2 0 9.8-1.9 13.3-5.1l-6.2-5.2c-2 1.5-4.5 2.3-7.1 2.3-5.2 0-9.7-3.1-11.3-7.6l-6.5 5C9.5 39 16.2 43.5 24 43.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6.2 5.2C40.9 35.9 43.5 30.5 43.5 23.5c0-1.3-.1-2.3-.4-3z"/></svg>
+          Continue with Google
+        </button>
+
+        <button class="btn btn-apple" onclick="Auth.social('Apple')">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.05 12.04c-.03-2.6 2.12-3.85 2.22-3.91-1.21-1.77-3.1-2.01-3.77-2.04-1.6-.16-3.13.94-3.94.94-.81 0-2.07-.92-3.4-.89-1.75.03-3.36 1.02-4.26 2.58-1.82 3.16-.47 7.84 1.3 10.41.86 1.26 1.89 2.67 3.24 2.62 1.3-.05 1.79-.84 3.36-.84 1.57 0 2.01.84 3.39.81 1.4-.02 2.29-1.28 3.15-2.55.99-1.46 1.4-2.87 1.42-2.94-.03-.01-2.73-1.05-2.76-4.15zM14.6 4.97c.72-.87 1.2-2.08 1.07-3.28-1.03.04-2.28.69-3.02 1.56-.66.77-1.24 2-1.08 3.18 1.15.09 2.32-.59 3.03-1.46z"/></svg>
+          Continue with Apple
+        </button>
+
+        <div class="divider">or use phone</div>
+
+        <div class="field">
+          <button type="button" class="country-select" data-iso="NP">
+            <span class="flag">🇳🇵</span><span class="ccode">+977</span><span class="chev">▾</span>
+          </button>
+          <span class="cc-divider"></span>
+          <input type="tel" inputmode="numeric" placeholder="Phone number" />
+        </div>
+
+        <button class="btn btn-primary" style="margin-top:6px" onclick="Auth.sendOtp()">Continue →</button>
+
+        <p class="terms">By continuing, you agree to our<br/>
+          <a class="link" href="#">Terms of Service</a> and <a class="link" href="#">Privacy Policy</a>.
+        </p>
+      </section>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/components/country-picker.js"></script>
+  <script src="../../js/components/auth-flow.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    function demoOtp(){ Buzzend.confirm({ icon:"📲", title:"Send verification code?",
+      message:"We'll text a 6-digit code to +977 98•• •••• 21.", confirmLabel:"Send code", cancelLabel:"Edit number" }); }
+  </script>
+</body>
+</html>
