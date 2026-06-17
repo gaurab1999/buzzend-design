@@ -7,8 +7,8 @@ window.HomeData = (function () {
 
   // exercise → icon mapping (line icons)
   const WORKOUTS = [
-    { i:"dumbbell", n:"Squats" }, { i:"activity", n:"Push-ups" }, { i:"target", n:"Sit-ups" },
-    { i:"dumbbell", n:"Lunges" }, { i:"zap", n:"Jumping" }, { i:"footprints", n:"Walk" },
+    { i:"squat", n:"Squats" }, { i:"pushup", n:"Push-ups" }, { i:"situp", n:"Sit-ups" },
+    { i:"lunge", n:"Lunges" }, { i:"jumping", n:"Jumping Jacks" }, { i:"walk", n:"Walk" },
   ];
 
   const DATA = {
@@ -17,23 +17,27 @@ window.HomeData = (function () {
       workout: { today: 3, reps: 320, streak: 47, activeMin: 38, activePct: 65 },
       steps: { value: "3,000", goal: "6,000", pct: 50, kcal: 200, active: "55m", distance: "3.8km" },
       sessions: [
-        { i:"dumbbell", n:"Squats", reps:120, kcal:60, t:"9:12 AM" },
-        { i:"activity", n:"Push-ups", reps:80, kcal:45, t:"12:30 PM" },
-        { i:"target", n:"Sit-ups", reps:120, kcal:50, t:"6:05 PM" },
+        { i:"squat", n:"Squats", reps:120, kcal:60, t:"9:12 AM" },
+        { i:"pushup", n:"Push-ups", reps:80, kcal:45, t:"12:30 PM" },
+        { i:"situp", n:"Sit-ups", reps:120, kcal:50, t:"6:05 PM" },
       ],
       challenges: [
-        { i:"dumbbell", n:"30-Day Squats", m:"Day 12 · 240 reps", p:60 },
-        { i:"activity", n:"Push-up Power", m:"Day 4 · 80 reps", p:30 },
+        { i:"squat", n:"30-Day Squats", m:"Day 12 · 240 reps", p:60 },
+        { i:"pushup", n:"Push-up Power", m:"Day 4 · 80 reps", p:30 },
       ],
       friends: [ {n:"Anita",s:"8.2k",r:1}, {n:"Ravi",s:"6.1k",r:2}, {n:"Sita",s:"5.5k",r:3}, {n:"Kiran",s:"4.9k"} ],
-      feed: [ {n:"Adesh Pokhrel", t:"2h ago", tag:"Walk", likes:185, comments:15, views:2400}, {n:"Maya Gurung", t:"5h ago", tag:"Push-ups", likes:96, comments:8, views:1240} ],
+      feed: [
+        {n:"Adesh Pokhrel", t:"2h ago", tag:"Walk", ex:"walk", action:"Finished a 5K Walk Challenge", likes:185, views:2400, dur:"0:42"},
+        {n:"Maya Gurung", t:"5h ago", tag:"Push-ups", ex:"pushup", action:"Crushed 96 push-ups in one set", likes:96, views:1240, dur:"0:28"},
+        {n:"Kiran Shah", t:"6h ago", tag:"Squats", ex:"squat", action:"New squat PR — 150 reps today!", likes:142, views:1820, dur:"0:35"},
+      ],
     },
     partial: {
       greeting: "Good morning", bell: false,
       workout: { today: 1, reps: 40, streak: 1, activeMin: 18, activePct: 25 },
       steps: { value: "1,200", goal: "6,000", pct: 20, kcal: 80, active: "18m", distance: "1.2km" },
-      sessions: [ { i:"dumbbell", n:"Squats", reps:40, kcal:40, t:"8:30 AM" } ],
-      challenges: [ { i:"dumbbell", n:"30-Day Squats", m:"Just joined · Day 1", p:5 } ],
+      sessions: [ { i:"squat", n:"Squats", reps:40, kcal:40, t:"8:30 AM" } ],
+      challenges: [ { i:"squat", n:"30-Day Squats", m:"Just joined · Day 1", p:5 } ],
       friends: [], feed: [],
     },
     new: {
@@ -150,7 +154,7 @@ window.HomeData = (function () {
       <div class="ph"><div class="pa" style="background-image:linear-gradient(135deg,#caa,#a77)"></div>
         <div><div class="pn">${p.n}</div><div class="pt">${p.t}</div></div><span class="ptag">${p.tag}</span></div>
       <div class="pmedia"><div class="play">${I('play',20)}</div></div>
-      <div class="pactions"><span>${I('heart',17)} ${p.likes}</span><span>${I('comment',17)} ${p.comments}</span><span>${I('share',17)} Share</span></div></div>`).join("");
+      <div class="pactions"><span>${I('heart',17)} ${p.likes}</span><span>${I('eye',17)} ${p.views>=1000?(p.views/1000).toFixed(1).replace(/\.0$/,'')+'k':p.views}</span><span>${I('share',17)} Share</span></div></div>`).join("");
   }
 
   // V2 activity-rings card
@@ -182,7 +186,7 @@ window.HomeData = (function () {
       <div class="b"><div class="bl">Streak</div><div class="bv" style="display:flex;align-items:center;gap:6px">${I('flame',22)} ${w.streak}</div><div class="bd">${state==='new'?'start today':'days in a row'}</div></div>
       <div class="b"><div class="bl">Reps today</div><div class="bv">${w.reps}</div><div class="bd">${w.today} workouts</div></div>
       ${stepsCard}
-      <div class="b" onclick="HomeData.startWorkout('Push-ups')" style="cursor:pointer"><div class="bl">Up next</div><div class="bv" style="font-size:20px;display:flex;align-items:center;gap:8px">${I('activity',20)} Push-ups</div><div class="bd">Tap to start</div></div>
+      <div class="b" onclick="HomeData.startWorkout('Push-ups')" style="cursor:pointer"><div class="bl">Up next</div><div class="bv" style="font-size:20px;display:flex;align-items:center;gap:8px">${I('pushup',20)} Push-ups</div><div class="bd">Tap to start</div></div>
     </div>`;
   }
 

@@ -33,6 +33,14 @@ window.Icons = (function () {
     alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/>',
     success: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
     phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+
+    /* exercise icons — side-view figure glyphs (one per workout), used app-wide */
+    squat: '<circle cx="12" cy="4.5" r="2"/><path d="M12 6.5 9.5 14"/><path d="M11 8.5 16.5 11"/><path d="M9.5 14H16"/><path d="M16 14 13.5 21"/>',
+    pushup: '<circle cx="4" cy="10" r="1.8"/><path d="M5.5 10.3 14 11"/><path d="M14 11 20 13"/><path d="M8 11v6"/><path d="M3 18h18"/>',
+    situp: '<circle cx="5.5" cy="9.5" r="1.8"/><path d="M7 10.5 12 15"/><path d="M12 15 16 11l4 4"/><path d="M3.5 18h17"/>',
+    lunge: '<circle cx="10" cy="4" r="2"/><path d="M10 6v7"/><path d="M10 8.5 13 10.5"/><path d="M10 13h6v8"/><path d="M10 13 6 18l-2.5 3"/>',
+    jumping: '<circle cx="12" cy="4" r="2"/><path d="M12 6.5V13"/><path d="M12 8 6 5"/><path d="M12 8 18 5"/><path d="M12 13 8 20.5"/><path d="M12 13 16 20.5"/>',
+    walk: '<circle cx="11" cy="4.5" r="2"/><path d="M11 6.5v6.5"/><path d="M11 8.5 14 10.5"/><path d="M11 8.5 8 11"/><path d="M11 13 15 16l-1 5"/><path d="M11 13 8 17l-1 4"/>',
   };
   function svg(name, size, cls) {
     const inner = P[name]; if (!inner) return "";

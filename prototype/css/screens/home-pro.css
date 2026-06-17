@@ -324,3 +324,57 @@
 .pp-actions span { display:inline-flex; align-items:center; gap:6px; font:800 13px var(--font); color:var(--text-secondary); }
 .pp-actions .pp-spacer { flex:1; }
 .pp-actions .pp-share { color:var(--primary); cursor:pointer; }
+
+/* ════ Community feed · V1 clean card ════ */
+.fc-post { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden;
+  box-shadow:var(--shadow-card); margin-bottom:16px; }
+.fc-head { display:flex; align-items:center; gap:11px; padding:13px 14px 11px; }
+.fc-av { width:40px; height:40px; border-radius:50%; background:var(--surface-alt) center/cover; flex:none; }
+.fc-meta { flex:1; min-width:0; }
+.fc-n { font:800 14px var(--font); color:var(--text-primary); }
+.fc-t { font:700 11.5px var(--font); color:var(--text-tertiary); margin-top:1px; }
+.fc-t .fc-tag { color:var(--primary); }
+.fc-ex { color:var(--primary); display:inline-flex; flex:none; }
+.fc-cap { font:600 13.5px var(--font); color:var(--text-primary); line-height:1.45; padding:0 14px 12px; }
+.fc-media { height:200px; position:relative; display:grid; place-items:center; }
+.fc-play { width:54px; height:54px; border-radius:50%; background:rgba(0,0,0,.4); display:grid; place-items:center; color:#fff; backdrop-filter:blur(2px); }
+.fc-dur { position:absolute; bottom:10px; right:10px; font:800 11px var(--font); color:#fff; background:rgba(0,0,0,.55); padding:3px 8px; border-radius:7px; }
+.fc-actions { display:flex; align-items:center; gap:20px; padding:11px 15px; }
+.fc-act { display:inline-flex; align-items:center; gap:7px; border:none; background:none; cursor:pointer; padding:0;
+  font:800 13.5px var(--font); color:var(--text-secondary); }
+.fc-act:active { transform:scale(.92); }
+.fc-act b { font-weight:800; }
+.fc-act.fc-share { margin-left:auto; color:var(--primary); }
+
+/* ════ Community feed · V2 activity list (Strava style) ════ */
+.fa-list { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; box-shadow:var(--shadow-card); }
+.fa-row { display:flex; align-items:center; gap:12px; padding:13px 14px; border-bottom:1px solid var(--divider); }
+.fa-row:last-child { border-bottom:none; }
+.fa-av { width:42px; height:42px; border-radius:50%; background:var(--surface-alt) center/cover; flex:none; }
+.fa-body { flex:1; min-width:0; }
+.fa-top { display:flex; align-items:baseline; gap:8px; }
+.fa-n { font:800 13.5px var(--font); color:var(--text-primary); }
+.fa-t { font:700 11px var(--font); color:var(--text-tertiary); }
+.fa-action { font:700 12.5px var(--font); color:var(--text-secondary); margin-top:3px; display:flex; align-items:center; gap:6px; }
+.fa-ex { color:var(--primary); display:inline-flex; flex:none; }
+.fa-stats { display:flex; gap:14px; margin-top:7px; }
+.fa-stats span { display:inline-flex; align-items:center; gap:5px; font:700 11px var(--font); color:var(--text-tertiary); }
+.fa-thumb { width:54px; height:54px; border-radius:14px; flex:none; display:grid; place-items:center; color:#fff; }
+.fa-thumb span { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,.35); }
+
+/* ════ Community feed · V3 immersive (Reels style) ════ */
+.fi-post { height:300px; border-radius:var(--r-lg); overflow:hidden; position:relative; margin-bottom:14px; color:#fff;
+  box-shadow:var(--shadow-card); display:grid; place-items:center; }
+.fi-post::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.28) 0%, transparent 32%, transparent 55%, rgba(0,0,0,.55) 100%); }
+.fi-top { position:absolute; top:12px; left:12px; right:12px; z-index:2; display:flex; align-items:center; gap:9px; }
+.fi-av { width:34px; height:34px; border-radius:50%; background:var(--surface-alt) center/cover; border:2px solid rgba(255,255,255,.7); flex:none; }
+.fi-n { flex:1; font:800 13.5px var(--font); line-height:1.2; }
+.fi-n span { display:block; font:700 10.5px var(--font); opacity:.85; }
+.fi-follow { border:1.5px solid rgba(255,255,255,.8); background:rgba(255,255,255,.12); color:#fff; font:800 11px var(--font);
+  padding:6px 14px; border-radius:99px; cursor:pointer; backdrop-filter:blur(2px); }
+.fi-play { width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,.22); display:grid; place-items:center; color:#fff; z-index:2; backdrop-filter:blur(2px); }
+.fi-side { position:absolute; right:12px; bottom:64px; z-index:2; display:flex; flex-direction:column; gap:16px; align-items:center; }
+.fi-s { display:flex; flex-direction:column; align-items:center; gap:3px; font:800 11px var(--font); }
+.fi-cap { position:absolute; left:14px; right:60px; bottom:14px; z-index:2; }
+.fi-tag { display:inline-flex; align-items:center; gap:5px; font:800 11px var(--font); background:rgba(255,255,255,.2); padding:4px 10px; border-radius:99px; }
+.fi-action { font:700 13px var(--font); margin-top:8px; line-height:1.35; }

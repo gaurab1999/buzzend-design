@@ -237,16 +237,56 @@ window.HomePro = (function () {
   }
   function switchTab(el) { el.parentNode.querySelectorAll(".pro-tab").forEach((b) => b.classList.toggle("on", b === el)); }
 
-  /* ── Community video feed — likes / views / share ── */
+  /* ── Community feed ── three clean designs (research-driven) ──
+     feed (clean card · default) · feedActivity (Strava-style list) · feedImmersive (Reels-style). */
+  const MEDIA = ["linear-gradient(135deg,#3a5a40,#588157)", "linear-gradient(135deg,#22555f,#2a9d8f)", "linear-gradient(135deg,#3d3a5b,#5e60ce)"];
+  const media = (i) => MEDIA[i % MEDIA.length];
+  const avatar = (g) => `style="background-image:linear-gradient(135deg,${g})"`;
+  const AVS = ["#c9a6a6,#a77", "#9bb7c9,#5e7d99", "#c9c19b,#9a8c5e"];
+  const feedEmpty = (h) => h + H.empty("share", "Your feed is quiet", "Follow people or join a challenge to see posts and activity here.", "Discover people");
+
+  // V1 · clean card (Instagram / Facebook style)
   function feed(state, d) {
     const h = sec("Community", state === "full");
-    if (!d.feed.length) return h + H.empty("share", "Your feed is quiet", "Follow people or join a challenge to see posts and activity here.", "Discover people");
-    return h + feedTabs() + d.feed.map((p) => `<div class="pro-post">
-      <div class="pp-head"><div class="pp-av" style="background-image:linear-gradient(135deg,#caa,#a77)"></div>
-        <div class="pp-meta"><div class="pp-n">${p.n}</div><div class="pp-t">${p.t}</div></div><span class="pp-tag">${p.tag}</span></div>
-      <div class="pp-media"><div class="pp-play">${I("play", 20)}</div><span class="pp-views">${I("eye", 12)} ${fmt(p.views || 0)} views</span></div>
-      <div class="pp-actions"><span>${I("heart", 17)} ${p.likes}</span><span>${I("comment", 17)} ${p.comments}</span>
-        <span class="pp-spacer"></span><span class="pp-share" onclick="Buzzend.alert({icon:'share',title:'Share post',message:'Share ${p.n}\\'s ${p.tag} clip.'})">${I("share", 16)} Share</span></div></div>`).join("");
+    if (!d.feed.length) return feedEmpty(h);
+    return h + feedTabs() + d.feed.map((p, i) => `<div class="fc-post">
+      <div class="fc-head"><div class="fc-av" ${avatar(AVS[i % 3])}></div>
+        <div class="fc-meta"><div class="fc-n">${p.n}</div><div class="fc-t">${p.t} · <span class="fc-tag">${p.tag}</span></div></div>
+        <span class="fc-ex">${I(p.ex || "activity", 18)}</span></div>
+      ${p.action ? `<div class="fc-cap">${p.action}</div>` : ""}
+      <div class="fc-media" style="background:${media(i)}"><div class="fc-play">${I("play", 22)}</div><span class="fc-dur">${p.dur || ""}</span></div>
+      <div class="fc-actions">
+        <button class="fc-act">${I("heart", 20)}<b>${p.likes}</b></button>
+        <button class="fc-act">${I("eye", 19)}<b>${fmt(p.views || 0)}</b></button>
+        <button class="fc-act fc-share">${I("share", 19)} Share</button></div></div>`).join("");
+  }
+
+  // V2 · activity list (Strava style — compact, scannable)
+  function feedActivity(state, d) {
+    const h = sec("Community", state === "full");
+    if (!d.feed.length) return feedEmpty(h);
+    return h + feedTabs() + `<div class="fa-list">` + d.feed.map((p, i) => `<div class="fa-row">
+      <div class="fa-av" ${avatar(AVS[i % 3])}></div>
+      <div class="fa-body">
+        <div class="fa-top"><span class="fa-n">${p.n}</span><span class="fa-t">${p.t}</span></div>
+        <div class="fa-action"><span class="fa-ex">${I(p.ex || "activity", 15)}</span> ${p.action || p.tag}</div>
+        <div class="fa-stats"><span>${I("heart", 14)} ${p.likes}</span><span>${I("eye", 14)} ${fmt(p.views || 0)}</span><span>${I("share", 13)} Share</span></div>
+      </div>
+      <div class="fa-thumb" style="background:${media(i)}"><span>${I("play", 16)}</span></div></div>`).join("") + `</div>`;
+  }
+
+  // V3 · immersive media (Reels / TikTok style — full-bleed cards)
+  function feedImmersive(state, d) {
+    const h = sec("Community", state === "full");
+    if (!d.feed.length) return feedEmpty(h);
+    return h + feedTabs() + d.feed.map((p, i) => `<div class="fi-post" style="background:${media(i)}">
+      <div class="fi-top"><div class="fi-av" ${avatar(AVS[i % 3])}></div><div class="fi-n">${p.n}<span>${p.t}</span></div><button class="fi-follow">Follow</button></div>
+      <div class="fi-play">${I("play", 24)}</div>
+      <div class="fi-side">
+        <span class="fi-s">${I("heart", 23)}<b>${p.likes}</b></span>
+        <span class="fi-s">${I("eye", 22)}<b>${fmt(p.views || 0)}</b></span>
+        <span class="fi-s">${I("share", 21)}</span></div>
+      <div class="fi-cap"><span class="fi-tag">${I(p.ex || "activity", 13)} ${p.tag}</span>${p.action ? `<div class="fi-action">${p.action}</div>` : ""}</div></div>`).join("");
   }
 
   /* ════ Combined "Today" card — daily goal + today's workouts in ONE card ════
@@ -348,5 +388,5 @@ window.HomePro = (function () {
   }
 
   return { goalSpotlight, aiBand, aiPulse, aiMomentum, goalBanner, statTiles, momentumHero, statPills,
-    leaderPodium, leaderList, feedTabs, switchTab, feed, todayCard };
+    leaderPodium, leaderList, feedTabs, switchTab, feed, feedActivity, feedImmersive, todayCard };
 })();

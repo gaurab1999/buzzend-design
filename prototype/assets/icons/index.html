@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Icon set</title>
+  <style>
+    :root { --c: #008080; }
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f5f5f5; color: #242626; padding: 40px 28px; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    h1 { font-size: 26px; font-weight: 900; }
+    p.sub { color: #5f5f5f; font-weight: 600; margin: 6px 0 24px; }
+    .swatches { display: flex; gap: 8px; margin-bottom: 26px; }
+    .swatches button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #d9d9d9; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 14px; }
+    .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 16px; padding: 18px 10px 12px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+    .ic { width: 30px; height: 30px; margin: 0 auto; background: var(--c);
+      -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+    .name { font-size: 12px; font-weight: 700; color: #5f5f5f; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>⚡ Buzzend — Icon set</h1>
+    <p class="sub">33 line icons (24×24, <code>stroke=currentColor</code>) incl. dedicated exercise glyphs. Click a swatch to recolor — they inherit color, so they theme automatically in the app.</p>
+    <div class="swatches">
+      <button style="background:#008080" onclick="setC('#008080')"></button>
+      <button style="background:#00c98d" onclick="setC('#00c98d')"></button>
+      <button style="background:#0099ff" onclick="setC('#0099ff')"></button>
+      <button style="background:#d49a00" onclick="setC('#d49a00')"></button>
+      <button style="background:#ff6b00" onclick="setC('#ff6b00')"></button>
+      <button style="background:#7c3aed" onclick="setC('#7c3aed')"></button>
+      <button style="background:#242626" onclick="setC('#242626')"></button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <script>
+    const ICONS = ["squat","pushup","situp","lunge","jumping","walk","home","trophy","activity","user","users","plus","search","bell","zap","camera","dumbbell","footprints","flame","clock","pin","heart","comment","share","play","eye","target","check","chevron","x","alert","success","phone"];
+    document.getElementById("grid").innerHTML = ICONS.map(n =>
+      `<div class="card"><div class="ic" style="--i:url('${n}.svg')"></div><div class="name">${n}</div></div>`).join("");
+    function setC(c) { document.documentElement.style.setProperty("--c", c); }
+  </script>
+</body>
+</html>
