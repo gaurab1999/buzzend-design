@@ -98,15 +98,15 @@
 /* V5 · horizontal RAIL of cards */
 .combo-rail { display:flex; gap:10px; overflow-x:auto; margin:0 -16px; padding:2px 16px 6px; }
 .combo-rail::-webkit-scrollbar { display:none; }
-.cw-card { flex:none; width:128px; background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--r-md); padding:14px; box-shadow:var(--shadow-card); }
-.cw-card .cw-ic { width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
+.cw-card { flex:none; width:120px; height:112px; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-md); padding:12px; box-shadow:var(--shadow-card); display:flex; flex-direction:column; }
+.cw-card .cw-ic { width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
   background:color-mix(in srgb, var(--primary) 12%, transparent); color:var(--primary); }
-.cw-card .cw-n { font:800 13.5px var(--font); color:var(--text-primary); margin-top:10px; }
-.cw-card .cw-reps { font:900 18px var(--font); color:var(--primary); margin-top:4px; }
-.cw-card .cw-reps span { font:700 11px var(--font); color:var(--text-tertiary); }
-.cw-card .cw-meta { font:700 10.5px var(--font); color:var(--text-tertiary); margin-top:4px; }
-.cw-card.cw-add { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+.cw-card .cw-n { font:800 13px var(--font); color:var(--text-primary); margin-top:auto; }
+.cw-card .cw-reps { font:900 17px var(--font); color:var(--primary); margin-top:3px; }
+.cw-card .cw-reps span { font:700 10.5px var(--font); color:var(--text-tertiary); }
+.cw-card .cw-meta { font:700 10.5px var(--font); color:var(--text-tertiary); margin-top:2px; }
+.cw-card.cw-add { align-items:center; justify-content:center; gap:8px; cursor:pointer;
   color:var(--primary); border-style:dashed; box-shadow:none; background:color-mix(in srgb, var(--primary) 5%, transparent);
   font:800 12.5px var(--font); text-align:center; }
 
@@ -122,6 +122,133 @@
 .cw-tile .cw-meta { font:700 10.5px var(--font); color:var(--text-tertiary); margin-top:3px; }
 .cw-tile.cw-add { grid-column:1 / -1; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px;
   cursor:pointer; color:var(--primary); background:color-mix(in srgb, var(--primary) 8%, transparent); font:800 13px var(--font); }
+
+/* ════ Active challenges (V7) — compact: ring + info + chat on one row ════ */
+.chalx { flex:none; width:236px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+  padding:12px 13px; box-shadow:var(--shadow-card); display:flex; align-items:center; gap:12px; }
+.chalx-ring { position:relative; flex:none; }
+.chalx .ring { flex:none; }
+.chalx-ex { position:absolute; bottom:-3px; right:-3px; width:21px; height:21px; border-radius:50%;
+  background:var(--surface); border:1.5px solid var(--border); display:grid; place-items:center; }
+.chalx-ex svg { width:11px; height:11px; }
+.chalx .cx-pct { font:900 13px var(--font); color:var(--text-primary); }
+.chalx-info { flex:1; min-width:0; }
+.cx-name { font:800 14px var(--font); color:var(--text-primary); line-height:1.2;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.cx-meta { font:700 11px var(--font); color:var(--text-tertiary); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chalx-chat { width:34px; height:34px; border-radius:10px; border:1px solid var(--border); background:var(--surface);
+  display:grid; place-items:center; color:var(--primary); cursor:pointer; flex:none; }
+.chalx-chat:active { transform:scale(.94); }
+
+/* ════ Friends' activity FEED — session card: exercises + metrics + cheer ════ */
+.fa-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; box-shadow:var(--shadow-card); margin-bottom:12px; }
+.fa-head { display:flex; align-items:center; gap:11px; }
+.fa-av { width:42px; height:42px; border-radius:50%; background:var(--surface-alt) center/cover; flex:none; }
+.fa-who { flex:1; min-width:0; }
+.fa-n { font:800 14px var(--font); color:var(--text-primary); }
+.fa-t { font:700 11px var(--font); color:var(--text-tertiary); margin-top:1px; }
+.fa-cheer { flex:none; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text-secondary); font:800 12.5px var(--font); padding:7px 13px; border-radius:99px; cursor:pointer; }
+.fa-cheer b { font-weight:800; }
+.fa-cheer.on { color:#e25b40; border-color:color-mix(in srgb, #e25b40 40%, var(--border)); background:color-mix(in srgb, #e25b40 8%, transparent); }
+.fa-cheer:active { transform:scale(.95); }
+.fa-ex { display:flex; align-items:center; gap:10px; margin-top:12px; }
+.fa-exic { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; color:var(--primary);
+  background:color-mix(in srgb, var(--primary) 12%, transparent); flex:none; }
+.fa-exsum { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:800 13.5px var(--font); color:var(--text-primary); }
+.fa-metrics { display:flex; gap:16px; margin-top:12px; padding-top:11px; border-top:1px solid var(--divider); }
+.fa-m { display:inline-flex; align-items:center; gap:6px; font:700 12.5px var(--font); color:var(--text-secondary); }
+.fa-m svg { color:var(--text-tertiary); }
+
+/* ════ Top activities — Top / Friends scope switch ════ */
+.ta-tabs { display:flex; gap:8px; margin-bottom:12px; }
+.ta-tab { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text-secondary); font:800 12.5px var(--font); padding:8px 16px; border-radius:99px; cursor:pointer; }
+.ta-tab.on { background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+.ta-tab svg { width:14px; height:14px; }
+.ta-wrap.scope-top .ta-friends { display:none; }
+.ta-wrap.scope-friends .ta-top { display:none; }
+.ta-rank { width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none;
+  font:900 12px var(--font); color:#fff; background:var(--primary); }
+.ta-rank.rank1 { background:#f6cf4b; color:#1b1b1b; } .ta-rank.rank2 { background:#c8ced6; color:#1b1b1b; } .ta-rank.rank3 { background:#e0a06a; color:#1b1b1b; }
+
+/* ── A · chips grid ── */
+.fc2-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; box-shadow:var(--shadow-card); margin-bottom:12px; }
+.fc2-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.fc2-chip { display:inline-flex; align-items:center; gap:5px; font:800 12px var(--font); color:var(--text-secondary);
+  background:var(--surface-alt); border-radius:99px; padding:6px 11px; }
+.fc2-chip svg { color:var(--primary); }
+.fc2-chip.fc2-steps { background:color-mix(in srgb, var(--primary) 12%, transparent); color:var(--primary); }
+.fc2-chip.fc2-steps svg { color:var(--primary); }
+.fc2-foot { display:flex; gap:14px; margin-top:12px; padding-top:11px; border-top:1px solid var(--divider); }
+.fc2-foot span { display:inline-flex; align-items:center; gap:5px; font:700 12px var(--font); color:var(--text-tertiary); }
+
+/* ── B · breakdown bar ── */
+.fb-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; box-shadow:var(--shadow-card); margin-bottom:12px; }
+.fb-total { margin-left:auto; font:900 13px var(--font); color:var(--text-primary); flex:none; }
+.fb-bar { display:flex; gap:2px; height:10px; border-radius:99px; overflow:hidden; background:var(--surface-alt); margin-top:12px; }
+.fb-bar i { display:block; height:100%; }
+.fb-legend { display:flex; flex-wrap:wrap; gap:8px 12px; margin-top:11px; }
+.fb-leg { display:inline-flex; align-items:center; gap:6px; font:700 11.5px var(--font); color:var(--text-secondary); }
+.fb-leg i { width:9px; height:9px; border-radius:3px; flex:none; }
+.fb-metrics { display:flex; gap:14px; margin-top:11px; padding-top:11px; border-top:1px solid var(--divider); }
+.fb-metrics span { display:inline-flex; align-items:center; gap:5px; font:700 12px var(--font); color:var(--text-tertiary); }
+
+/* ── C · compact list ── */
+.fco-list { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; box-shadow:var(--shadow-card); }
+.fco-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--divider); }
+.fco-row:last-child { border-bottom:none; }
+.fa-av.sm { width:40px; height:40px; }
+.fco-info { flex:1; min-width:0; }
+.fco-top { font:800 13.5px var(--font); color:var(--text-primary); }
+.fco-top span { font:700 11px var(--font); color:var(--text-tertiary); }
+.fco-act { display:flex; align-items:center; gap:6px; margin-top:3px; font:700 12.5px var(--font); color:var(--text-secondary); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fco-ic { color:var(--primary); display:inline-flex; flex:none; }
+.fco-more { color:var(--text-tertiary); }
+.fco-kcal { display:inline-flex; align-items:center; gap:5px; font:800 12.5px var(--font); color:var(--text-secondary); flex:none; }
+.fco-kcal svg { color:#e25b40; }
+
+/* ════ Friends' activity rail (modernized "Friends Steps") ════ */
+.fr-scroll { gap:16px; padding-bottom:4px; }
+.fr-item { flex:none; width:72px; text-align:center; }
+.fr-avwrap { position:relative; width:60px; height:60px; margin:0 auto 9px; }
+.fr-av { width:60px; height:60px; border-radius:50%; background:var(--surface-alt) center/cover; border:2.5px solid var(--border); }
+.fr-av.rk1 { border-color:#f6cf4b; } .fr-av.rk2 { border-color:#c8ced6; } .fr-av.rk3 { border-color:#e0a06a; }
+.fr-rank { position:absolute; bottom:-3px; right:-3px; min-width:21px; height:21px; padding:0 5px; border-radius:99px;
+  display:grid; place-items:center; font:900 11px var(--font); color:#fff; background:var(--primary); border:2px solid var(--surface); }
+.fr-rank.rk1 { background:#f6cf4b; color:#1b1b1b; } .fr-rank.rk2 { background:#c8ced6; color:#1b1b1b; } .fr-rank.rk3 { background:#e0a06a; color:#1b1b1b; }
+.fr-n { font:800 12.5px var(--font); color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fr-s { font:700 10.5px var(--font); color:var(--text-tertiary); margin-top:1px; }
+.fr-plus { display:grid; place-items:center; border:2.5px dashed var(--border); color:var(--text-tertiary); }
+.fr-add .fr-n { color:var(--primary); }
+
+/* ════ League (V7) — weekly division by Active points ════ */
+.lg-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); box-shadow:var(--shadow-card); overflow:hidden; }
+.lg-head { display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--divider); }
+.lg-badge { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 16%, transparent); flex:none; }
+.lg-h { flex:1; min-width:0; }
+.lg-name { font:900 16px var(--font); color:var(--text-primary); }
+.lg-sub { font:700 11px var(--font); color:var(--text-tertiary); margin-top:2px; }
+.lg-timer { display:inline-flex; align-items:center; gap:5px; font:800 12px var(--font); color:var(--text-secondary);
+  background:var(--surface-alt); padding:6px 11px; border-radius:99px; flex:none; }
+.lg-list { padding:4px 0 6px; }
+.lg-row { display:flex; align-items:center; gap:12px; padding:9px 16px; }
+.lg-row.you { background:color-mix(in srgb, var(--primary) 7%, transparent); }
+.lg-rank { width:22px; text-align:center; font:900 13.5px var(--font); color:var(--text-tertiary); flex:none; }
+.lg-rank.rank1 { color:#e8b400; } .lg-rank.rank2 { color:#9aa6b2; } .lg-rank.rank3 { color:#cd7f4d; }
+.lg-rank.promo { color:var(--success); }
+.lg-av { width:36px; height:36px; border-radius:50%; background:var(--surface-alt) center/cover; flex:none; }
+.lg-n { flex:1; min-width:0; font:800 13.5px var(--font); color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lg-you { font:800 9px var(--font); letter-spacing:.3px; color:var(--primary); background:color-mix(in srgb, var(--primary) 14%, transparent);
+  padding:2px 7px; border-radius:99px; margin-left:5px; }
+.lg-pts { font:900 13.5px var(--font); color:var(--text-primary); flex:none; }
+.lg-pts span { font:700 10px var(--font); color:var(--text-tertiary); }
+.lg-divider { display:flex; align-items:center; gap:10px; padding:8px 16px 6px; }
+.lg-divider span { display:inline-flex; align-items:center; gap:5px; font:800 9.5px var(--font); letter-spacing:.4px;
+  text-transform:uppercase; color:var(--success); white-space:nowrap; }
+.lg-divider span svg { width:11px; height:11px; }
+.lg-divider::after { content:""; flex:1; height:1.5px; border-radius:2px; background:color-mix(in srgb, var(--success) 40%, transparent); }
 
 /* ════ AI Pose Detection band (top) + streak detail ════ */
 .pro-ai { background:var(--hero-grad); color:#fff; border-radius:var(--r-lg); padding:20px;
@@ -191,6 +318,13 @@
 .pls-badge { display:inline-flex; align-items:center; gap:6px; font:800 12px var(--font); color:var(--primary);
   background:color-mix(in srgb, var(--primary) 12%, transparent); padding:6px 11px; border-radius:999px; }
 .pls-badge .ai-fl { color:var(--accent); display:inline-flex; }
+.pls-stats { display:flex; gap:10px; }
+.pls-stat { flex:1; display:flex; align-items:center; gap:9px; background:var(--surface-alt); border-radius:var(--r-sm); padding:10px 11px; }
+.pls-ic { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; flex:none; }
+.pls-ic.cur { color:var(--accent); background:color-mix(in srgb, var(--accent) 16%, transparent); }
+.pls-ic.best { color:var(--primary); background:color-mix(in srgb, var(--primary) 14%, transparent); }
+.pls-v { font:900 15px var(--font); color:var(--text-primary); line-height:1; }
+.pls-l { font:700 10px var(--font); color:var(--text-tertiary); margin-top:3px; }
 .pulse-streak .streak-week { margin-top:14px; }
 
 /* ════ V6 · Momentum top — giant streak number is the hero ════ */

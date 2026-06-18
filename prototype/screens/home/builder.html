@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Home builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/home.css" />
+  <link rel="stylesheet" href="../../css/screens/home-pro.css" />
+  <style>
+    body.builder { display:flex; align-items:flex-start; justify-content:center; gap:30px; padding:28px 24px; }
+    .bld-panel { width:300px; flex:none; background:var(--surface); border:1px solid var(--border); border-radius:18px;
+      padding:20px; box-shadow:var(--shadow-card); position:sticky; top:28px; }
+    .bld-panel h1 { font:900 18px var(--font); color:var(--text-primary); }
+    .bld-panel .sub { font:600 12px var(--font); color:var(--text-secondary); margin:4px 0 16px; }
+    .bld-group { margin-bottom:16px; }
+    .bld-group > label { font:800 11px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-tertiary); display:block; margin-bottom:8px; }
+    .bld-pills { display:flex; gap:6px; }
+    .bld-pill { flex:1; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); font:800 12px var(--font); padding:9px 6px; border-radius:10px; cursor:pointer; }
+    .bld-pill.on { background:var(--primary); color:var(--on-primary); border-color:var(--primary); }
+    .bld-sec { border-top:1px solid var(--divider); padding:12px 0; }
+    .bld-sec.off { opacity:.5; }
+    .bld-sec-h { display:flex; align-items:center; gap:11px; }
+    .bld-sec-n { font:800 13px var(--font); color:var(--text-primary); }
+    .bld-tog { position:relative; width:38px; height:22px; flex:none; }
+    .bld-tog input { position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:2; }
+    .bld-tog span { position:absolute; inset:0; background:var(--border); border-radius:99px; transition:.2s; }
+    .bld-tog span::before { content:""; position:absolute; width:18px; height:18px; left:2px; top:2px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.25); }
+    .bld-tog input:checked + span { background:var(--primary); }
+    .bld-tog input:checked + span::before { transform:translateX(16px); }
+    .bld-vars { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 0 49px; }
+    .bld-sec.off .bld-vars { pointer-events:none; }
+    .bld-var { border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); font:700 11px var(--font); padding:5px 10px; border-radius:8px; cursor:pointer; }
+    .bld-var.on { background:color-mix(in srgb, var(--primary) 14%, transparent); color:var(--primary); border-color:color-mix(in srgb, var(--primary) 35%, transparent); }
+    .bld-preview { flex:none; }
+    @media (max-width:780px){ body.builder{flex-direction:column; align-items:center;} .bld-panel{position:static; width:390px;} }
+  </style>
+</head>
+<body class="builder">
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+  <div class="bld-panel">
+    <h1>⚡ Home builder</h1>
+    <div class="sub">Toggle sections, pick a variant, choose the data state — preview updates live.</div>
+    <div class="bld-group">
+      <label>Data</label>
+      <div class="bld-pills">
+        <button class="bld-pill" data-state="new">New</button>
+        <button class="bld-pill" data-state="partial">Medium</button>
+        <button class="bld-pill on" data-state="full">Full</button>
+      </div>
+    </div>
+    <div class="bld-group"><label>Sections</label><div id="sections"></div></div>
+  </div>
+
+  <div class="bld-preview">
+    <div class="screen-box">
+      <div class="screen home">
+        <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
+        <div class="home-header">
+          <div class="hh-avatar" style="background-image:linear-gradient(135deg,#6a8caf,#33566f)"></div>
+          <div class="hh-greet"><div class="hi" id="hi">Good morning</div><div class="nm">Ema William</div></div>
+          <button class="hh-btn"><i data-icon="search" data-size="19"></i></button>
+          <button class="hh-btn" id="bell"><i data-icon="bell" data-size="19"></i><span class="dot" id="bell-dot"></span></button>
+        </div>
+        <div class="scroll" id="content"></div>
+      </div>
+      <div class="bottom-nav">
+        <a class="nav-item active"><span class="ic"><i data-icon="home" data-size="22"></i></span>Home</a>
+        <a class="nav-item"><span class="ic"><i data-icon="trophy" data-size="22"></i></span>Challenges</a>
+        <div class="nav-fab"><button><i data-icon="plus" data-size="26"></i></button></div>
+        <a class="nav-item"><span class="ic"><i data-icon="activity" data-size="22"></i></span>Activity</a>
+        <a class="nav-item"><span class="ic"><i data-icon="user" data-size="22"></i></span>Profile</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/home-data.js"></script>
+  <script src="../../js/screens/home-pro.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const H = HomeData, P = HomePro;
+    let state = "full";
+
+    // every composable section: on/off, optional variants, and how to render
+    const SECTIONS = [
+      { id:"top", label:"Top · AI + streak", on:true, variant:"pulse",
+        variants:{ pulse:"Pulse", focus:"Focus", momentum:"Momentum" },
+        render:(v,s,d)=> v==="focus"?P.aiBand(s,d): v==="momentum"?P.aiMomentum(s,d): P.aiPulse(s,d) },
+      { id:"today", label:"Daily goal + workouts", on:true, variant:"banner",
+        variants:{ banner:"Banner", spot:"Spotlight", hero:"Hero" },
+        render:(v,s,d)=> P.todayCard(s,d,v,{stats:true,addFirst:true}) },
+      { id:"glance", label:"At a glance · tiles", on:false, variant:null, variants:null,
+        render:(v,s,d)=> P.statTiles(s,d) },
+      { id:"picker", label:"Choose a workout", on:false, variant:null, variants:null,
+        render:(v,s,d)=> H.workoutPicker() },
+      { id:"challenges", label:"Active challenges", on:true, variant:"ring",
+        variants:{ ring:"Ring + chat", classic:"Classic" },
+        render:(v,s,d)=> v==="classic"?H.challenges(s,d):P.challengesPro(s,d) },
+      { id:"activity", label:"Top activities", on:true, variant:"chips",
+        variants:{ chips:"Chips", feed:"Feed", bars:"Bars", compact:"Compact" },
+        render:(v,s,d)=> P.topActivities(s,d,v) },
+      { id:"community", label:"Community feed", on:true, variant:"clean",
+        variants:{ clean:"Clean", activity:"Activity", immersive:"Immersive" },
+        render:(v,s,d)=> v==="activity"?P.feedActivity(s,d): v==="immersive"?P.feedImmersive(s,d): P.feed(s,d) },
+    ];
+
+    function renderPreview() {
+      const d = H.DATA[state];
+      document.getElementById("hi").textContent = d.greeting;
+      document.getElementById("bell-dot").style.display = d.bell ? "block" : "none";
+      const c = document.getElementById("content");
+      c.innerHTML = SECTIONS.filter(s=>s.on).map(s=>s.render(s.variant, state, d)).join("");
+      window.Icons.init(c);
+    }
+
+    function buildPanel() {
+      document.getElementById("sections").innerHTML = SECTIONS.map(s=>`
+        <div class="bld-sec ${s.on?'':'off'}" id="sec-${s.id}">
+          <div class="bld-sec-h">
+            <label class="bld-tog"><input type="checkbox" ${s.on?'checked':''} data-sec="${s.id}"><span></span></label>
+            <span class="bld-sec-n">${s.label}</span>
+          </div>
+          ${s.variants?`<div class="bld-vars">${Object.entries(s.variants).map(([k,l])=>`<button class="bld-var ${s.variant===k?'on':''}" data-sec="${s.id}" data-var="${k}">${l}</button>`).join("")}</div>`:""}
+        </div>`).join("");
+    }
+
+    document.querySelector(".bld-panel").addEventListener("click", (e) => {
+      const sp = e.target.closest("[data-state]");
+      if (sp) { state = sp.dataset.state; document.querySelectorAll("[data-state]").forEach(b=>b.classList.toggle("on", b===sp)); return renderPreview(); }
+      const vb = e.target.closest(".bld-var");
+      if (vb) { const s = SECTIONS.find(x=>x.id===vb.dataset.sec); s.variant = vb.dataset.var;
+        vb.parentNode.querySelectorAll(".bld-var").forEach(b=>b.classList.toggle("on", b===vb)); return renderPreview(); }
+    });
+    document.querySelector(".bld-panel").addEventListener("change", (e) => {
+      const t = e.target.closest("input[data-sec]"); if (!t) return;
+      const s = SECTIONS.find(x=>x.id===t.dataset.sec); s.on = t.checked;
+      document.getElementById("sec-"+s.id).classList.toggle("off", !s.on);
+      renderPreview();
+    });
+
+    buildPanel(); renderPreview();
+  </script>
+</body>
+</html>

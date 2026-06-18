@@ -14,7 +14,7 @@ window.HomeData = (function () {
   const DATA = {
     full: {
       greeting: "Good morning", bell: true,
-      workout: { today: 3, reps: 320, streak: 47, activeMin: 38, activePct: 65 },
+      workout: { today: 3, reps: 320, streak: 47, best: 60, activeMin: 38, activePct: 65 },
       steps: { value: "3,000", goal: "6,000", pct: 50, kcal: 200, active: "55m", distance: "3.8km" },
       sessions: [
         { i:"squat", n:"Squats", reps:120, kcal:60, t:"9:12 AM" },
@@ -34,7 +34,7 @@ window.HomeData = (function () {
     },
     partial: {
       greeting: "Good morning", bell: false,
-      workout: { today: 1, reps: 40, streak: 1, activeMin: 18, activePct: 25 },
+      workout: { today: 1, reps: 40, streak: 1, best: 3, activeMin: 18, activePct: 25 },
       steps: { value: "1,200", goal: "6,000", pct: 20, kcal: 80, active: "18m", distance: "1.2km" },
       sessions: [ { i:"squat", n:"Squats", reps:40, kcal:40, t:"8:30 AM" } ],
       challenges: [ { i:"squat", n:"30-Day Squats", m:"Just joined · Day 1", p:5 } ],
@@ -42,7 +42,7 @@ window.HomeData = (function () {
     },
     new: {
       greeting: "Welcome to Buzzend", bell: false,
-      workout: { today: 0, reps: 0, streak: 0, activeMin: 0, activePct: 0 },
+      workout: { today: 0, reps: 0, streak: 0, best: 0, activeMin: 0, activePct: 0 },
       steps: null, sessions: [], challenges: [], friends: [], feed: [],
     },
   };

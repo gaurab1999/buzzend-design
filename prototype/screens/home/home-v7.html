@@ -52,11 +52,11 @@
       document.getElementById("hi").textContent = d.greeting;
       document.getElementById("bell").querySelector(".dot").style.display = d.bell ? "block" : "none";
       // V7 = V5 body + V6's bold streak-forward top section
-      let h = P.aiMomentum(state, d)         // TOP — bold streak-forward hero + CTA (from V6)
+      let h = P.aiPulse(state, d)            // TOP — clean separated CTA bar + streak card (less busy)
         + P.todayCard(state, d, "banner", { stats: true, addFirst: true }) // goal banner + distance/active + today's workouts (Start another first)
         + (state === "new" ? H.checklist() : "")
-        + H.challenges(state, d)             // active challenges
-        + P.leaderList(state, d)             // friends leaderboard
+        + P.challengesPro(state, d)          // active challenges — ring progress + group chat
+        + P.topActivities(state, d)          // Top activities — Top / Friends scope switch, activity cards
         + P.feed(state, d);                  // community video feed · likes/views/share
       document.getElementById("content").innerHTML = h;
       window.Icons.init(document.getElementById("content"));

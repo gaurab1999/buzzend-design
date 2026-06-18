@@ -116,15 +116,17 @@ window.HomePro = (function () {
 
   /* ── V5 · Pulse top — modular & light: slim gradient CTA bar + light streak card ── */
   function aiPulse(state, d) {
-    const w = d.workout, streak = w.streak;
-    const badge = `<span class="pls-badge"><span class="ai-fl">${I("flame", 14)}</span> ${streak > 0 ? streak + "-day streak" : "Start streak"}</span>`;
+    const w = d.workout;
     return `<div class="pulse-cta" onclick="HomeData.startWorkout('Squats')">
         <span class="pulse-cta-ic">${I("camera", 22)}</span>
         <div class="pulse-cta-t"><div class="pct-eyebrow">${I("zap", 11)} AI POSE DETECTION</div>
           <div class="pct-title">${state === "new" ? "Try your first AI workout" : "Start an AI workout"}</div></div>
         <span class="pct-go">${I("chevron", 20)}</span></div>
       <div class="pulse-streak">
-        <div class="pls-head"><div class="pls-h">This week</div>${badge}</div>
+        <div class="pls-stats">
+          <div class="pls-stat"><span class="pls-ic cur">${I("flame", 15)}</span><div><div class="pls-v">${w.streak} days</div><div class="pls-l">Current streak</div></div></div>
+          <div class="pls-stat"><span class="pls-ic best">${I("trophy", 15)}</span><div><div class="pls-v">${w.best} days</div><div class="pls-l">Best streak</div></div></div>
+        </div>
         ${streakWeek(state, w, "light")}</div>`;
   }
 
@@ -372,7 +374,7 @@ window.HomePro = (function () {
     if (layout === "rail") {
       const cards = d.sessions.map((s) => `<div class="cw-card"><div class="cw-ic">${I(s.i, 22)}</div>
         <div class="cw-n">${s.n}</div><div class="cw-reps">${s.reps}<span> reps</span></div>
-        <div class="cw-meta">${s.kcal} kcal · ${s.t}</div></div>`).join("");
+        <div class="cw-meta">${s.kcal} kcal</div></div>`).join("");
       const add = `<div class="cw-card cw-add" onclick="HomeData.startWorkout('another')">${I("plus", 22)}<div>Start<br>another</div></div>`;
       return head + summary + `<div class="combo-rail">${opts && opts.addFirst ? add + cards : cards + add}</div>`;
     }
@@ -390,6 +392,217 @@ window.HomePro = (function () {
       <div class="combo-body">${comboWorkouts(state, d, kind, opts)}</div></div>`;
   }
 
+  /* ── Active challenges (V7) — circular progress ring + group-chat button ── */
+  function challengesPro(state, d) {
+    const h = sec("Active challenges", state === "full");
+    if (!d.challenges.length) return h + H.empty("trophy", "No challenges yet", "Join a challenge to compete with friends and stay motivated.", "Browse challenges");
+    return h + `<div class="h-scroll">` + d.challenges.map((c) => {
+      const ring = H.ring({ pct: c.p, size: 50, r: 21, stroke: 5.5, track: "var(--surface-alt)", prog: "var(--primary)", center: `<div class="cx-pct">${c.p}%</div>` });
+      return `<div class="chalx">
+        <div class="chalx-ring">${ring}<span class="chalx-ex" style="color:var(--primary)">${I(c.i, 11)}</span></div>
+        <div class="chalx-info"><div class="cx-name">${c.n}</div><div class="cx-meta">${c.m}</div></div>
+        <button class="chalx-chat" onclick="Buzzend.alert({icon:'comment',title:'${c.n} · Chat',message:'Open the challenge group chat to cheer members on and share your progress.'})">${I("comment", 16)}</button></div>`;
+    }).join("") + `</div>`;
+  }
+
+  /* ── League (V7) — weekly division ranked by Active points (steps + AI reps) ── */
+  const LEAGUE = {
+    tier: "Gold League", left: "4d", promote: 5,
+    rows: [
+      { rank: 1, n: "Anita Malan", pts: 3120, av: "#b8c6d1,#8aa0b3" },
+      { rank: 2, n: "Ravi Thapa",  pts: 2940, av: "#c9a6a6,#a87" },
+      { rank: 3, n: "Sita Rai",    pts: 2710, av: "#a6c9b5,#5e996f" },
+      { rank: 4, n: "Ema William", pts: 2480, av: "#6a8caf,#33566f", you: true },
+      { rank: 5, n: "Kiran Shah",  pts: 2150, av: "#c9c19b,#9a8c5e" },
+      { rank: 6, n: "Maya Gurung", pts: 1980, av: "#9bb7c9,#5e7d99" },
+    ],
+  };
+  function leagueBoard(state, d) {
+    const L = LEAGUE;
+    const rows = L.rows.map((r) => {
+      const cls = r.rank <= 3 ? ` rank${r.rank}` : (r.rank <= L.promote ? " promo" : "");
+      const row = `<div class="lg-row${r.you ? " you" : ""}">
+        <span class="lg-rank${cls}">${r.rank}</span>
+        <div class="lg-av" style="background-image:linear-gradient(135deg,${r.av})"></div>
+        <div class="lg-n">${r.n}${r.you ? ' <span class="lg-you">You</span>' : ""}</div>
+        <div class="lg-pts">${r.pts.toLocaleString()}<span> pts</span></div></div>`;
+      return row + (r.rank === L.promote ? `<div class="lg-divider"><span>${I("zap", 11)} Promotion zone · top ${L.promote} advance</span></div>` : "");
+    }).join("");
+    return sec("League", true) + `<div class="lg-card">
+      <div class="lg-head"><span class="lg-badge">${I("trophy", 20)}</span>
+        <div class="lg-h"><div class="lg-name">${L.tier}</div><div class="lg-sub">Active points = steps + AI reps this week</div></div>
+        <span class="lg-timer">${I("clock", 13)} ${L.left} left</span></div>
+      <div class="lg-list">${rows}</div></div>`;
+  }
+
+  /* ── Friends' activity rail (modernized "Friends Steps" — horizontal avatars) ── */
+  function friendsRail(state, d) {
+    const h = sec("Friends' activity", state === "full");
+    if (!d.friends.length) return h + H.empty("users", "Add your friends", "Compare steps and cheer each other on. It's more fun together!", "Find friends");
+    const items = d.friends.map((f, i) => {
+      const r = f.r || i + 1;
+      return `<div class="fr-item">
+        <div class="fr-avwrap"><div class="fr-av rk${r}" style="background-image:linear-gradient(135deg,#b8c6d1,#8aa0b3)"></div>
+          <span class="fr-rank rk${r}">${r}</span></div>
+        <div class="fr-n">${f.n}</div><div class="fr-s">${f.s} steps</div></div>`;
+    }).join("");
+    const invite = `<div class="fr-item fr-add" onclick="Buzzend.alert({icon:'users',title:'Invite friends',message:'Share your invite link to compete and cheer each other on.'})">
+      <div class="fr-avwrap"><div class="fr-av fr-plus">${I("plus", 22)}</div></div><div class="fr-n">Invite</div></div>`;
+    return h + `<div class="h-scroll fr-scroll">${items}${invite}</div>`;
+  }
+
+  /* ── Friends' activity — rich session data: steps + 0..5 exercises + distance/kcal/active.
+     Anita = max (5 exercises) · Ravi/Maya = medium (2) · Sita = steps only. No likes. ── */
+  const EXC = { squat: "var(--primary)", pushup: "var(--secondary)", situp: "var(--accent)", jumping: "var(--success)", lunge: "#e25b40", walk: "#5e7d99" };
+  const FRIENDS_ACT = [
+    { n: "Anita Malan", t: "2h", av: "#b8c6d1,#8aa0b3", steps: "6.2k", dist: "4.1km", kcal: 520, active: "1h 10m",
+      ex: [{ i: "squat", n: "Squats", r: 120 }, { i: "pushup", n: "Push-ups", r: 80 }, { i: "situp", n: "Sit-ups", r: 90 }, { i: "jumping", n: "Jumping Jacks", r: 60 }, { i: "lunge", n: "Lunges", r: 40 }] },
+    { n: "Ravi Thapa", t: "4h", av: "#c9a6a6,#a87", steps: "5.1k", dist: "3.3km", kcal: 300, active: "40m",
+      ex: [{ i: "pushup", n: "Push-ups", r: 90 }, { i: "situp", n: "Sit-ups", r: 70 }] },
+    { n: "Maya Gurung", t: "6h", av: "#9bb7c9,#5e7d99", steps: "3.4k", dist: "2.2km", kcal: 210, active: "28m",
+      ex: [{ i: "squat", n: "Squats", r: 60 }, { i: "jumping", n: "Jumping Jacks", r: 50 }] },
+    { n: "Sita Rai", t: "5h", av: "#a6c9b5,#5e996f", steps: "8.4k", dist: "5.6km", kcal: 240, active: "1h 02m", ex: [] },
+  ];
+  const faHead = (f, right) => `<div class="fa-head"><div class="fa-av" style="background-image:linear-gradient(135deg,${f.av})"></div>
+    <div class="fa-who"><div class="fa-n">${f.n}</div><div class="fa-t">${f.t} ago</div></div>${right || ""}</div>`;
+  const faEmpty = (h) => h + H.empty("users", "Add your friends", "Follow friends to see their workouts here.", "Find friends");
+
+  // baseline · feed (exercises summary + metric chips, scales via "+N more")
+  function friendsActivity(state, d) {
+    const h = sec("Friends' activity", state === "full");
+    if (state === "new") return faEmpty(h);
+    return h + FRIENDS_ACT.map((f) => {
+      const pi = f.ex[0] ? f.ex[0].i : "walk";
+      const sum = f.ex.length ? f.ex.slice(0, 2).map((e) => `${e.r} ${e.n}`).join(" · ") + (f.ex.length > 2 ? ` · +${f.ex.length - 2} more` : "") : `${f.dist} walk`;
+      return `<div class="fa-card">${faHead(f)}
+        <div class="fa-ex"><span class="fa-exic">${I(pi, 15)}</span><span class="fa-exsum">${sum}</span></div>
+        <div class="fa-metrics"><span class="fa-m">${I("footprints", 14)} ${f.steps}</span><span class="fa-m">${I("flame", 14)} ${f.kcal} kcal</span><span class="fa-m">${I("clock", 14)} ${f.active}</span></div></div>`;
+    }).join("");
+  }
+
+  // A · chips grid — every data point is a chip that wraps (1 → 6+ cleanly)
+  function friendsChips(state, d) {
+    const h = sec("Friends' activity", state === "full");
+    if (state === "new") return faEmpty(h);
+    return h + FRIENDS_ACT.map((f) => `<div class="fc2-card">${faHead(f)}
+      <div class="fc2-chips"><span class="fc2-chip fc2-steps">${I("footprints", 13)} ${f.steps}</span>${f.ex.map((e) => `<span class="fc2-chip">${I(e.i, 13)} ${e.r}</span>`).join("")}</div>
+      <div class="fc2-foot"><span>${I("flame", 13)} ${f.kcal} kcal</span><span>${I("clock", 13)} ${f.active}</span><span>${I("pin", 13)} ${f.dist}</span></div></div>`).join("");
+  }
+
+  // B · breakdown bar — stacked rep distribution by exercise (steps-progress bar when no reps)
+  function friendsBars(state, d) {
+    const h = sec("Friends' activity", state === "full");
+    if (state === "new") return faEmpty(h);
+    return h + FRIENDS_ACT.map((f) => {
+      const total = f.ex.reduce((a, e) => a + e.r, 0);
+      let bar, legend, right;
+      if (f.ex.length) {
+        bar = f.ex.map((e) => `<i style="width:${(e.r / total * 100).toFixed(1)}%;background:${EXC[e.i]}"></i>`).join("");
+        legend = f.ex.map((e) => `<span class="fb-leg"><i style="background:${EXC[e.i]}"></i>${e.n} ${e.r}</span>`).join("");
+        right = `<span class="fb-total">${total} reps</span>`;
+      } else {
+        const pct = Math.min(parseFloat(f.steps) * 1000 / 10000 * 100, 100).toFixed(0);
+        bar = `<i style="width:${pct}%;background:var(--primary)"></i>`;
+        legend = `<span class="fb-leg"><i style="background:var(--primary)"></i>Steps only · ${f.steps} of 10k goal</span>`;
+        right = `<span class="fb-total">${f.steps} steps</span>`;
+      }
+      return `<div class="fb-card">${faHead(f, right)}
+        <div class="fb-bar">${bar}</div><div class="fb-legend">${legend}</div>
+        <div class="fb-metrics"><span>${I("footprints", 13)} ${f.steps}</span><span>${I("flame", 13)} ${f.kcal} kcal</span><span>${I("clock", 13)} ${f.active}</span></div></div>`;
+    }).join("");
+  }
+
+  // C · compact list — dominant activity + "+N more", one key metric (densest)
+  function friendsCompact(state, d) {
+    const h = sec("Friends' activity", state === "full");
+    if (state === "new") return faEmpty(h);
+    return h + `<div class="fco-list">` + FRIENDS_ACT.map((f) => {
+      const pi = f.ex[0] ? f.ex[0].i : "walk";
+      const head = f.ex[0] ? `${f.ex[0].r} ${f.ex[0].n}` : `${f.steps} steps`;
+      const more = f.ex.length > 1 ? `+${f.ex.length - 1} more` : (f.ex.length === 0 ? f.dist : "");
+      return `<div class="fco-row"><div class="fa-av sm" style="background-image:linear-gradient(135deg,${f.av})"></div>
+        <div class="fco-info"><div class="fco-top">${f.n} <span>· ${f.t} ago</span></div>
+          <div class="fco-act"><span class="fco-ic">${I(pi, 13)}</span>${head}${more ? ` <span class="fco-more">· ${more}</span>` : ""}</div></div>
+        <div class="fco-kcal">${I("flame", 13)} ${f.kcal}</div></div>`;
+    }).join("") + `</div>`;
+  }
+
+  /* ── Top activities — switch between globally Top-ranked people and Friends ──
+     Same scalable activity card; Top view adds a rank badge (ordered by activity). */
+  const TOP_ACT = [
+    { n: "Bishal Karki", t: "1h", av: "#b9a6c9,#6d5e99", steps: "12.4k", dist: "8.2km", kcal: 920, active: "1h 48m",
+      ex: [{ i: "squat", n: "Squats", r: 200 }, { i: "pushup", n: "Push-ups", r: 150 }, { i: "situp", n: "Sit-ups", r: 140 }, { i: "jumping", n: "Jumping Jacks", r: 120 }, { i: "lunge", n: "Lunges", r: 90 }] },
+    { n: "Priya Sharma", t: "2h", av: "#c9a6a6,#a87", steps: "10.8k", dist: "7.1km", kcal: 760, active: "1h 30m",
+      ex: [{ i: "pushup", n: "Push-ups", r: 160 }, { i: "squat", n: "Squats", r: 130 }, { i: "lunge", n: "Lunges", r: 80 }] },
+    { n: "Sara Lama", t: "3h", av: "#a6c9b5,#5e996f", steps: "11.2k", dist: "7.4km", kcal: 540, active: "1h 05m", ex: [] },
+    { n: "Dev Gurung", t: "3h", av: "#9bb7c9,#5e7d99", steps: "9.5k", dist: "6.3km", kcal: 680, active: "1h 12m",
+      ex: [{ i: "situp", n: "Sit-ups", r: 180 }, { i: "jumping", n: "Jumping Jacks", r: 140 }] },
+  ];
+  const rankBadge = (r) => r ? `<span class="ta-rank rank${r <= 3 ? r : "x"}">${r}</span>` : "";
+  const headOf = (p, rank, right) => `<div class="fa-head">${rankBadge(rank)}<div class="fa-av" style="background-image:linear-gradient(135deg,${p.av})"></div>
+    <div class="fa-who"><div class="fa-n">${p.n}</div><div class="fa-t">${p.t} ago</div></div>${right || ""}</div>`;
+
+  // card styles — each takes a person + optional rank, scales to 0..5 exercises
+  function cardFeed(p, rank) {
+    const pi = p.ex[0] ? p.ex[0].i : "walk";
+    const sum = p.ex.length ? p.ex.slice(0, 2).map((e) => `${e.r} ${e.n}`).join(" · ") + (p.ex.length > 2 ? ` · +${p.ex.length - 2} more` : "") : `${p.dist} walk`;
+    return `<div class="fa-card">${headOf(p, rank)}
+      <div class="fa-ex"><span class="fa-exic">${I(pi, 15)}</span><span class="fa-exsum">${sum}</span></div>
+      <div class="fa-metrics"><span class="fa-m">${I("footprints", 14)} ${p.steps}</span><span class="fa-m">${I("flame", 14)} ${p.kcal} kcal</span><span class="fa-m">${I("clock", 14)} ${p.active}</span></div></div>`;
+  }
+  function cardChips(p, rank) {
+    return `<div class="fc2-card">${headOf(p, rank)}
+      <div class="fc2-chips"><span class="fc2-chip fc2-steps">${I("footprints", 13)} ${p.steps}</span>${p.ex.map((e) => `<span class="fc2-chip">${I(e.i, 13)} ${e.r}</span>`).join("")}</div>
+      <div class="fc2-foot"><span>${I("flame", 13)} ${p.kcal} kcal</span><span>${I("clock", 13)} ${p.active}</span><span>${I("pin", 13)} ${p.dist}</span></div></div>`;
+  }
+  function cardBars(p, rank) {
+    const total = p.ex.reduce((a, e) => a + e.r, 0);
+    let bar, legend, right;
+    if (p.ex.length) {
+      bar = p.ex.map((e) => `<i style="width:${(e.r / total * 100).toFixed(1)}%;background:${EXC[e.i]}"></i>`).join("");
+      legend = p.ex.map((e) => `<span class="fb-leg"><i style="background:${EXC[e.i]}"></i>${e.n} ${e.r}</span>`).join("");
+      right = `${total} reps`;
+    } else {
+      const pct = Math.min(parseFloat(p.steps) * 1000 / 10000 * 100, 100).toFixed(0);
+      bar = `<i style="width:${pct}%;background:var(--primary)"></i>`;
+      legend = `<span class="fb-leg"><i style="background:var(--primary)"></i>Steps only · ${p.steps} of 10k goal</span>`;
+      right = `${p.steps} steps`;
+    }
+    return `<div class="fb-card">${headOf(p, rank, `<span class="fb-total">${right}</span>`)}
+      <div class="fb-bar">${bar}</div><div class="fb-legend">${legend}</div>
+      <div class="fb-metrics"><span>${I("footprints", 13)} ${p.steps}</span><span>${I("flame", 13)} ${p.kcal} kcal</span><span>${I("clock", 13)} ${p.active}</span></div></div>`;
+  }
+  function cardCompact(p, rank) {
+    const pi = p.ex[0] ? p.ex[0].i : "walk";
+    const head = p.ex[0] ? `${p.ex[0].r} ${p.ex[0].n}` : `${p.steps} steps`;
+    const more = p.ex.length > 1 ? `+${p.ex.length - 1} more` : (p.ex.length === 0 ? p.dist : "");
+    return `<div class="fco-row">${rankBadge(rank)}<div class="fa-av sm" style="background-image:linear-gradient(135deg,${p.av})"></div>
+      <div class="fco-info"><div class="fco-top">${p.n} <span>· ${p.t} ago</span></div>
+        <div class="fco-act"><span class="fco-ic">${I(pi, 13)}</span>${head}${more ? ` <span class="fco-more">· ${more}</span>` : ""}</div></div>
+      <div class="fco-kcal">${I("flame", 13)} ${p.kcal}</div></div>`;
+  }
+  const CARDS = { feed: cardFeed, chips: cardChips, bars: cardBars, compact: cardCompact };
+
+  function topActivities(state, d, variant) {
+    variant = variant || "chips";
+    const h = sec("Top activities", state === "full");
+    const card = CARDS[variant] || cardChips;
+    const wrap = (html) => variant === "compact" ? `<div class="fco-list">${html}</div>` : html;
+    const tabs = `<div class="ta-tabs">
+      <button class="ta-tab on" onclick="HomePro.scope(this,'top')">${I("trophy", 14)} Top</button>
+      <button class="ta-tab" onclick="HomePro.scope(this,'friends')">${I("users", 14)} Friends</button></div>`;
+    const top = wrap(TOP_ACT.map((p, i) => card(p, i + 1)).join(""));
+    const friends = state === "new"
+      ? H.empty("users", "No friends yet", "Follow friends to see their activity here.", "Find friends")
+      : wrap(FRIENDS_ACT.map((p) => card(p)).join(""));
+    return h + `<div class="ta-wrap scope-top">${tabs}<div class="ta-list ta-top">${top}</div><div class="ta-list ta-friends">${friends}</div></div>`;
+  }
+  function scope(btn, s) {
+    const w = btn.closest(".ta-wrap"); w.className = "ta-wrap scope-" + s;
+    w.querySelectorAll(".ta-tab").forEach((b) => b.classList.toggle("on", b === btn));
+  }
+
   return { goalSpotlight, aiBand, aiPulse, aiMomentum, goalBanner, statTiles, momentumHero, statPills,
-    leaderPodium, leaderList, feedTabs, switchTab, feed, feedActivity, feedImmersive, todayCard };
+    leaderPodium, leaderList, leagueBoard, friendsRail, friendsActivity, friendsChips, friendsBars, friendsCompact,
+    topActivities, scope, challengesPro, feedTabs, switchTab, feed, feedActivity, feedImmersive, todayCard };
 })();
