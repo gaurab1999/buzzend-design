@@ -41,6 +41,7 @@ window.Icons = (function () {
     lunge: '<circle cx="10" cy="4" r="2"/><path d="M10 6v7"/><path d="M10 8.5 13 10.5"/><path d="M10 13h6v8"/><path d="M10 13 6 18l-2.5 3"/>',
     jumping: '<circle cx="12" cy="4" r="2"/><path d="M12 6.5V13"/><path d="M12 8 6 5"/><path d="M12 8 18 5"/><path d="M12 13 8 20.5"/><path d="M12 13 16 20.5"/>',
     walk: '<circle cx="11" cy="4.5" r="2"/><path d="M11 6.5v6.5"/><path d="M11 8.5 14 10.5"/><path d="M11 8.5 8 11"/><path d="M11 13 15 16l-1 5"/><path d="M11 13 8 17l-1 4"/>',
+    'flip-camera': '<path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/><path d="M13 5h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5"/><circle cx="12" cy="12" r="3"/><path d="m18 22-3-3 3-3"/><path d="m6 2 3 3-3 3"/>',
   };
   function svg(name, size, cls) {
     const inner = P[name]; if (!inner) return "";

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · AI Workout</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/workout.css" />
+  <style>
+    .vsw { position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:120; display:flex; gap:4px;
+      background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:4px; box-shadow:var(--shadow-card); }
+    .vsw button { border:none; background:none; padding:7px 14px; border-radius:999px; cursor:pointer; font:800 12px var(--font); color:var(--text-secondary); }
+    .vsw button.on { background:var(--primary); color:var(--on-primary); }
+  </style>
+</head>
+<body>
+  <div class="vsw">
+    <button data-v="a" onclick="location.href='?v=a'">A · Beginner</button>
+    <button data-v="b" onclick="location.href='?v=b'">B · Balanced</button>
+    <button data-v="c" onclick="location.href='?v=c'">C · Advanced</button>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:64px">🌙</button>
+
+  <div class="screen-box"><div id="stage"></div></div>
+
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/workout.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const v = (new URLSearchParams(location.search).get("v") || "b").toLowerCase();
+    document.querySelectorAll(".vsw button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+    Workout.start(v, document.getElementById("stage"), new URLSearchParams(location.search).get("step"));
+  </script>
+</body>
+</html>
