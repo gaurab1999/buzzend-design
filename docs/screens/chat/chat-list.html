@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Chats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/chat.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+
+  <div class="screen-box">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+
+      <div class="chat-hd">
+        <button class="ic-btn" onclick="history.length>1?history.back():location.href='../home/home-v7.html'"><i data-icon="back" data-size="22"></i></button>
+        <div class="title">Chats</div>
+        <div class="acts">
+          <button class="ic-btn" id="searchBtn" onclick="toggleSearch()"><i data-icon="search" data-size="21"></i></button>
+          <button class="ic-btn" onclick="newChat()"><i data-icon="compose" data-size="20"></i></button>
+          <button class="ic-btn" onclick="openMenu(event)"><i data-icon="more-vertical" data-size="22"></i></button>
+        </div>
+      </div>
+
+      <div id="searchWrap" style="display:none">
+        <div class="cl-search">
+          <i data-icon="search" data-size="18"></i>
+          <input id="searchInput" placeholder="Search chats" oninput="render()" />
+        </div>
+      </div>
+
+      <div class="cl-seg" id="seg" data-tab="all">
+        <div class="pill"></div>
+        <button class="on" data-tab="all" onclick="setTab('all')">All <span class="tab-badge" id="bAll"></span></button>
+        <button data-tab="friends" onclick="setTab('friends')">Friends <span class="tab-badge" id="bFriends"></span></button>
+        <button data-tab="challenges" onclick="setTab('challenges')">Challenges <span class="tab-badge" id="bChal"></span></button>
+      </div>
+
+      <div class="cl-scroll" id="list"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/chat-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const C = window.Chat;
+    let tab = "all";
+
+    function movePill(){ const seg=document.getElementById("seg"); const a=seg.querySelector("button.on");
+      const pill=seg.querySelector(".pill"); if(!a)return;
+      pill.style.width=a.offsetWidth+"px"; pill.style.transform="translateX("+(a.offsetLeft-4)+"px)"; }
+    function setTab(t){ tab = t; document.getElementById("seg").dataset.tab = t;
+      document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on", b.dataset.tab===t));
+      movePill(); render(); }
+
+    function toggleSearch(){
+      const w = document.getElementById("searchWrap");
+      const show = w.style.display === "none";
+      w.style.display = show ? "block" : "none";
+      document.getElementById("searchBtn").style.color = show ? "var(--primary)" : "";
+      if (show) document.getElementById("searchInput").focus();
+      else { document.getElementById("searchInput").value=""; render(); }
+    }
+    function newChat(){
+      Buzzend.sheet({ title:"New message", html:
+        `<div class="attach-grid" style="grid-template-columns:repeat(2,1fr)">
+          <button onclick="Buzzend.confirm({title:'New chat',message:'Pick a friend to start a 1:1 chat.',confirmLabel:'OK'})">
+            <span class="ic" style="background:var(--hero-grad)">${Icons.svg('user',26)}</span>New chat</button>
+          <button onclick="Buzzend.confirm({title:'New group',message:'Create a group from a challenge.',confirmLabel:'OK'})">
+            <span class="ic" style="background:linear-gradient(135deg,#7c3aed,#22d3ee)">${Icons.svg('users',26)}</span>New group</button>
+        </div>` });
+      setTimeout(()=>window.Icons.init(document.querySelector('.bz-overlay')),0);
+    }
+
+    // preview line for a conversation's last message
+    function previewHtml(c){
+      if (!c.last) return `<span class="prev">Tap here to start the chat</span>`;
+      if (c.typing) return `<span class="prev typing">${C.person(c.typing).name.split(" ")[0]} is typing…</span>`;
+      const you = c.last.from === "me" ? `<span class="you">You: </span>` : "";
+      if (c.last.t === "image") return `<span class="prev">${you}<span class="attach">${Icons.svg('image',14)}</span>Photo</span>`;
+      if (c.last.t === "gif") return `<span class="prev">${you}<span class="attach">${Icons.svg('gif',14)}</span>GIF</span>`;
+      return `<span class="prev">${you}${esc(c.last.text)}</span>`;
+    }
+    function esc(s){ return (s||"").replace(/[&<>]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])); }
+
+    function rowHtml(c){
+      const title = C.convTitle(c), av = C.convAvatar(c), ini = C.convInitials(c);
+      const sq = c.kind === "group" ? " sq" : "";
+      const online = C.isOnline(c) ? `<span class="dot-online"></span>` : "";
+      const grp = c.kind === "group" ? `<span class="grp-count">${c.members>99?'99+':c.members}</span>` : "";
+      const mute = c.muted ? `<span class="mute-ic">${Icons.svg('bell-off',14)}</span>` : "";
+      const verified = c.official ? `<span style="display:inline-flex;color:var(--primary);flex:none">${Icons.svg('success',15)}</span>` : "";
+      let end = `<span class="tm">${c.time}</span>`;
+      if (c.unread) end += `<span class="badge${c.muted?' muted':''}">${c.unread}</span>`;
+      else if (c.pinned) end += `<span class="pin">${Icons.svg('pin',15)}</span>`;
+      return `<div class="cl-row${c.unread?' unread':''}" data-id="${c.id}">
+        <div class="av-wrap">
+          <div class="cl-av${sq}" style="background-image:${av}">${sq?'':ini}</div>${online}${grp}
+        </div>
+        <div class="cl-mid">
+          <div class="r1"><span class="nm">${esc(title)}</span>${verified}${mute}</div>
+          <div class="r2">${previewHtml(c)}</div>
+        </div>
+        <div class="cl-end">${end}</div>
+      </div>`;
+    }
+
+    function render(){
+      const q = (document.getElementById("searchInput").value||"").toLowerCase().trim();
+      let items = tab === "all" ? C.all() : tab === "friends" ? C.friends() : C.groups();
+      if (q) items = items.filter(c => C.convTitle(c).toLowerCase().includes(q));
+
+      // update tab badges (# of unread conversations)
+      const badge = (id, list)=>{ const el=document.getElementById(id); const n=list.filter(c=>c.unread).length;
+        el.textContent = n||""; el.style.display = n?"grid":"none"; };
+      badge("bAll", C.all()); badge("bFriends", C.friends()); badge("bChal", C.groups());
+
+      const list = document.getElementById("list");
+      if (!items.length){
+        list.innerHTML = `<div class="cl-empty"><div class="ic">${Icons.svg('comment',40)}</div>
+          <div class="t">${q?'No matches':'No chats yet'}</div>
+          <div class="d">${q?'Try a different name':'Start a conversation with a friend or challenge'}</div></div>`;
+        window.Icons.init(list); return;
+      }
+      const pinned = items.filter(c=>c.pinned), rest = items.filter(c=>!c.pinned);
+      let h = "";
+      const block = (arr)=> arr.map((c,i)=> rowHtml(c) + (i<arr.length-1?`<div class="cl-div"></div>`:"")).join("");
+      if (pinned.length && !q){ h += `<div class="cl-sec">${Icons.svg('pin',12)} Pinned</div>` + block(pinned); }
+      if (rest.length){ if (pinned.length && !q) h += `<div class="cl-sec">All chats</div>`; h += block(rest); }
+      list.innerHTML = h;
+      window.Icons.init(list);
+
+      // wire tap + long-press
+      list.querySelectorAll(".cl-row").forEach(row=>{
+        const id = row.dataset.id;
+        let timer=null, longed=false;
+        const start=()=>{ longed=false; timer=setTimeout(()=>{ longed=true; openRowSheet(id); },480); };
+        const clear=()=>{ if(timer) clearTimeout(timer); };
+        row.addEventListener("pointerdown",start);
+        row.addEventListener("pointerup",clear);
+        row.addEventListener("pointerleave",clear);
+        row.addEventListener("pointermove",clear);
+        row.addEventListener("contextmenu",e=>{ e.preventDefault(); openRowSheet(id); });
+        row.addEventListener("click",()=>{ if(!longed) openChat(id); });
+      });
+    }
+
+    function openChat(id){ location.href = `chat-detail.html?id=${id}`; }
+
+    function openRowSheet(id){
+      const c = C.byId(id);
+      const title = C.convTitle(c);
+      const row = (icon,label,cls,onclick)=>`<button class="cd-pop-item ${cls||''}" style="display:flex;align-items:center;gap:14px;width:100%;padding:14px 6px;border:none;background:none;font:800 15px var(--font);color:${cls==='danger'?'var(--danger)':'var(--text-primary)'};cursor:pointer;text-align:left" onclick="${onclick}">
+        <span style="color:${cls==='danger'?'var(--danger)':'var(--text-secondary)'};display:inline-flex">${icon}</span>${label}</button>`;
+      Buzzend.sheet({ html:
+        `<div style="display:flex;align-items:center;gap:12px;padding:2px 4px 14px;border-bottom:1px solid var(--divider);margin-bottom:6px">
+           <div class="cl-av${c.kind==='group'?' sq':''}" style="width:44px;height:44px;font-size:15px;background-image:${C.convAvatar(c)}">${c.kind==='group'?'':C.convInitials(c)}</div>
+           <div style="font:900 16px var(--font)">${esc(title)}</div>
+         </div>
+         ${row(Icons.svg(c.muted?'bell':'bell-off',20), c.muted?'Unmute notifications':'Mute notifications','',`sheetMute('${id}')`)}
+         ${row(Icons.svg('checks',20),'Mark as read','',`sheetRead('${id}')`)}
+         ${row(Icons.svg('pin',20), c.pinned?'Unpin chat':'Pin chat','',`sheetPin('${id}')`)}
+         ${row(Icons.svg('trash',20),'Delete chat','danger',`sheetDelete('${id}')`)}`
+      });
+    }
+    const closeSheet = ()=>{ const o=document.querySelector('.bz-overlay'); if(o){o.classList.remove('open');setTimeout(()=>o.remove(),200);} };
+    function sheetMute(id){ const c=C.byId(id); c.muted=!c.muted; closeSheet(); render(); }
+    function sheetRead(id){ C.byId(id).unread=0; closeSheet(); render(); }
+    function sheetPin(id){ const c=C.byId(id); c.pinned=!c.pinned; closeSheet(); render(); }
+    function sheetDelete(id){ closeSheet(); setTimeout(()=>Buzzend.confirm({ title:"Delete chat?",
+      message:"This removes the conversation from your list. It won't delete it for others.",
+      confirmLabel:"Delete", danger:true, icon:"trash",
+      onConfirm:()=>{ const i=C.CONVOS.findIndex(x=>x.id===id); if(i>=0)C.CONVOS.splice(i,1); render(); } }),210); }
+
+    /* header overflow menu → Support (matches Flutter chat-list ⋮) */
+    function openMenu(e){ e.stopPropagation();
+      const item=(icon,label,cls,fn)=>`<button class="${cls||''}" onclick="${fn}">${Icons.svg(icon,18)}${label}</button>`;
+      const items = item('comment','Support','','menuSupport()') + item('checks','Mark all as read','','menuReadAll()');
+      const scrim=document.createElement("div"); scrim.className="cd-menu-scrim"; scrim.onclick=closePop;
+      const pop=document.createElement("div"); pop.className="cd-pop"; pop.innerHTML=items;
+      const sb=document.querySelector(".screen-box"); sb.appendChild(scrim); sb.appendChild(pop);
+      window.Icons.init(pop);
+    }
+    function closePop(){ document.querySelectorAll(".cd-pop,.cd-menu-scrim").forEach(n=>n.remove()); }
+    function menuReadAll(){ C.CONVOS.forEach(c=>c.unread=0); closePop(); render(); }
+    function menuSupport(){ closePop(); openSupport(); }
+    function openSupport(){
+      const cats=["Account & profile","Challenges & competitions","Technical issue","Report a problem","Something else"];
+      const rows=cats.map(cat=>`<button onclick="startSupport('${cat}')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 6px;border:none;background:none;font:800 14.5px var(--font);color:var(--text-primary);cursor:pointer;text-align:left">${cat}<span style="color:var(--text-tertiary);display:inline-flex">${Icons.svg('chevron',18)}</span></button>`).join('<div class="cl-div" style="margin-left:6px"></div>');
+      Buzzend.sheet({ html:
+        `<div style="display:flex;align-items:center;gap:12px;padding:2px 4px 14px;border-bottom:1px solid var(--divider);margin-bottom:6px">
+           <div class="cl-av" style="width:44px;height:44px;font-size:18px;background-image:${C.grad('#008080,#006666')}">⚡</div>
+           <div><div style="font:900 16px var(--font)">Contact Buzzend Support</div>
+           <div style="font:600 12.5px var(--font);color:var(--text-secondary)">Pick a topic — we usually reply within a few hours</div></div>
+         </div>${rows}` });
+      setTimeout(()=>window.Icons.init(document.querySelector('.bz-overlay')),0);
+    }
+    function startSupport(cat){ const s=C.supportConv(); if(s) s.category=cat; closeSheet(); location.href='chat-detail.html?id=support'; }
+
+    render(); movePill();
+    window.addEventListener("load", movePill);
+    window.addEventListener("resize", movePill);
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg-canvas); color: var(--text-primary); padding: 36px 24px; }
+    .wrap { max-width: 1140px; margin: 0 auto; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    a.back { color: var(--text-secondary); font-weight: 700; text-decoration: none; font-size: 14px; }
+    h1 { font-size: 28px; font-weight: 900; margin-top: 6px; }
+    .sub { color: var(--text-secondary); font-weight: 600; margin: 6px 0 24px; max-width: 720px; }
+    .theme-toggle { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border);
+      border-radius: var(--r-pill); padding: 10px 16px; font: 700 13px var(--font); cursor: pointer; }
+    h2.grp { font-size: 18px; font-weight: 900; margin: 28px 0 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 26px; }
+    .item { text-align: center; }
+    .frame { width: 100%; height: 500px; border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--shadow-card); border: 1px solid var(--border); position: relative; background: var(--surface); }
+    .frame iframe { width: 390px; height: 880px; border: 0; transform: scale(.60); transform-origin: top left;
+      position: absolute; top: 0; left: 50%; margin-left: -117px; }
+    .item h3 { font-size: 16px; font-weight: 800; margin-top: 14px; }
+    .item p { font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
+    .item a.open { display: inline-block; margin-top: 8px; color: var(--primary); font-weight: 800; font-size: 13px; text-decoration: none; }
+    .note { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px 18px;
+      font-size: 13px; color: var(--text-secondary); font-weight: 600; line-height: 1.6; margin-top: 8px; }
+    .note b { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="back" href="../../index.html">← Home launcher</a><h1>Chat — list &amp; conversation</h1></div>
+      <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+    <p class="sub">Fresh redesign of the messaging flow, mapping the full Flutter feature set (private + challenge chats, reactions, replies, mentions, read receipts, presence) onto the token system. Long-press a message or a chat row to explore every action.</p>
+
+    <h2 class="grp">Screens</h2>
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="chat-list.html" scrolling="no"></iframe></div>
+        <h3>Chats list</h3><p>All / Friends / Challenges tabs · pinned · unread · mute · search · ⋮ Support · long-press actions</p>
+        <a class="open" href="chat-list.html">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="chat-detail.html?id=anita" scrolling="no"></iframe></div>
+        <h3>Friend chat (1:1)</h3><p>Presence · read receipts · reactions · reply · edit · image · block</p>
+        <a class="open" href="chat-detail.html?id=anita">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="chat-detail.html?id=sq30" scrolling="no"></iframe></div>
+        <h3>Challenge chat (group)</h3><p>Member count · sender names · @mentions · seen-by · members list</p>
+        <a class="open" href="chat-detail.html?id=sq30">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="chat-detail.html?id=mile" scrolling="no"></iframe></div>
+        <h3>Empty conversation</h3><p>"Be the first to start the fun" state</p>
+        <a class="open" href="chat-detail.html?id=mile">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="chat-detail.html?id=pp" scrolling="no"></iframe></div>
+        <h3>Group · typing + muted</h3><p>Animated typing indicator, muted badge, GIF message</p>
+        <a class="open" href="chat-detail.html?id=pp">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="chat-detail.html?id=drake" scrolling="no"></iframe></div>
+        <h3>Blocked chat</h3><p>"You can't reply to this conversation" banner</p>
+        <a class="open" href="chat-detail.html?id=drake">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="chat-detail.html?id=support" scrolling="no"></iframe></div>
+        <h3>Support chat</h3><p>Official Buzzend account · opened from the list ⋮ menu</p>
+        <a class="open" href="chat-detail.html?id=support">Open →</a>
+      </div>
+    </div>
+
+    <h2 class="grp">✨ Fresh concepts — reference-free redesigns</h2>
+    <p class="sub" style="margin-top:-4px">Three distinct design languages, each built from scratch around Buzzend's identity rather than a generic messenger.</p>
+    <div class="grid">
+      <div class="item">
+        <div class="frame"><iframe src="huddle-list.html" scrolling="no"></iframe></div>
+        <h3>Huddle · list</h3><p>Chat as momentum — "active now" rail, live team cards, progress bars</p>
+        <a class="open" href="huddle-list.html">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="huddle-chat.html?id=sq30" scrolling="no"></iframe></div>
+        <h3>Huddle · team chat</h3><p>Workout events woven inline + fitness cheers + collective goal</p>
+        <a class="open" href="huddle-chat.html?id=sq30">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="huddle-chat.html?id=anita" scrolling="no"></iframe></div>
+        <h3>Huddle · friend chat</h3><p>"You vs Anita this week" head-to-head strip</p>
+        <a class="open" href="huddle-chat.html?id=anita">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="focus-list.html" scrolling="no"></iframe></div>
+        <h3>Focus · list</h3><p>Calm, minimal, big type · swipe a row to mute/delete</p>
+        <a class="open" href="focus-list.html">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="focus-chat.html?id=anita" scrolling="no"></iframe></div>
+        <h3>Focus · conversation</h3><p>Distraction-free, airy, centered header</p>
+        <a class="open" href="focus-chat.html?id=anita">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="arena-list.html" scrolling="no"></iframe></div>
+        <h3>Arena · list</h3><p>Competitive — your rank hero, Teams/Rivals, live positions</p>
+        <a class="open" href="arena-list.html">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="arena-chat.html?id=sq30" scrolling="no"></iframe></div>
+        <h3>Arena · team chat</h3><p>Mini-leaderboard header, rank pills on messages, lead alerts</p>
+        <a class="open" href="arena-chat.html?id=sq30">Open →</a>
+      </div>
+      <div class="item">
+        <div class="frame"><iframe src="arena-chat.html?id=anita" scrolling="no"></iframe></div>
+        <h3>Arena · rival chat</h3><p>Head-to-head VS scoreboard, trash-talk energy</p>
+        <a class="open" href="arena-chat.html?id=anita">Open →</a>
+      </div>
+    </div>
+
+    <h2 class="grp">Interactions to try</h2>
+    <div class="note">
+      <b>Chat list:</b> switch <b>All / Friends / Challenges</b> tabs · type in search · <b>long-press (or right-click) a row</b> → Mute / Mark read / Pin / Delete · <b>⋮</b> → Support (topic picker → support chat) / Mark all read.<br>
+      <b>Conversation:</b> <b>long-press a message</b> → quick-react row + Reply / Copy / Forward / Edit / Delete · tap a reaction chip → who-reacted sheet · tap "Seen by" on a group message → seen-by list · <b>⋮</b> → mute / search / members / block / report / delete · <b>+</b> → attach photo/GIF · type <b>@</b> in a group for mention autocomplete · tap an image → fullscreen.
+    </div>
+  </div>
+  <script src="../../js/app.js"></script>
+</body>
+</html>
