@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Arena · Chats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/chat-concepts.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+  <div class="screen-box">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="ar-hero">
+        <div class="ar-hero-top">
+          <div class="t">🏆 Arena</div>
+          <button class="ic" onclick="location.href='chat-list.html'"><i data-icon="search" data-size="20"></i></button>
+          <button class="ic"><i data-icon="compose" data-size="19"></i></button>
+        </div>
+        <div class="ar-you">
+          <div class="av" style="background-image:linear-gradient(135deg,#6a8caf,#33566f)"></div>
+          <div class="mid"><div class="l">This week</div><div class="n">You · 2,146 pts</div></div>
+          <div class="rank"><div class="r">#4</div><div class="l">▲ 2 TODAY</div></div>
+        </div>
+      </div>
+      <div class="ar-tabs" id="tabs">
+        <button class="on" data-t="teams" onclick="setTab('teams')"><i data-icon="users" data-size="16"></i>Teams</button>
+        <button data-t="rivals" onclick="setTab('rivals')"><i data-icon="zap" data-size="16"></i>Rivals</button>
+      </div>
+      <div class="ar-list" id="list"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/chat-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const C=window.Chat; let tab="teams";
+    const esc=s=>(s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+    const medal=r=>r===1?"🥇":r===2?"🥈":r===3?"🥉":"#"+r;
+    function setTab(t){ tab=t; document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); render(); }
+
+    function teamCard(c,i){
+      const myPos=[4,1,7][i%3], trend=i%2?'ar-up':'ar-down', arrow=i%2?'▲':'▼';
+      const prev=c.last?(c.last.from==="me"?"You: ":"")+esc(c.last.text):"No messages yet";
+      return `<div class="ar-card" onclick="location.href='arena-chat.html?id=${c.id}'">
+        <div class="rk ${i<3?'top':''}">${medal(i+1)}</div>
+        <div class="ar-cover" style="background-image:${C.grad(c.cover)}"></div>
+        <div class="mid"><div class="nm">${esc(c.name)}</div>
+          <div class="mt"><span class="ar-mypos">You #${myPos}</span><span class="${trend}">${arrow} ${1+i} today</span></div></div>
+        <div class="end"><span class="tm">${c.time}</span>${c.unread?`<span class="ar-badge">${c.unread}</span>`:""}</div>
+      </div>`;
+    }
+    function rivalCard(c){
+      const p=C.person(c.who); const reps=C.weekReps(p.name); const mine=C.weekReps("Ema William");
+      const ahead=mine>=reps;
+      const prev=c.last?(c.last.from==="me"?"You: ":"")+esc(c.last.text):"Challenge them";
+      return `<div class="ar-card" onclick="location.href='arena-chat.html?id=${c.id}'">
+        <div class="ar-cover" style="border-radius:50%;background-image:${p.av}">${p.initials}</div>
+        <div class="mid"><div class="nm">${esc(p.name)}</div>
+          <div class="mt"><span class="${ahead?'ar-up':'ar-down'}">${ahead?'You lead':'Behind'} ${Math.abs(mine-reps)}</span><span style="color:var(--text-tertiary)">${reps} reps</span></div></div>
+        <div class="end"><span class="tm">${c.time}</span>${c.unread?`<span class="ar-badge">${c.unread}</span>`:""}</div>
+      </div>`;
+    }
+    function render(){ const list=document.getElementById("list");
+      list.innerHTML = tab==="teams" ? C.groups().map(teamCard).join("") : C.friends().map(rivalCard).join("");
+      window.Icons.init(list);
+    }
+    render();
+  </script>
+</body>
+</html>

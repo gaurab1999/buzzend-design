@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Huddle · Chats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/chat.css" />
+  <link rel="stylesheet" href="../../css/screens/chat-concepts.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+  <div class="screen-box">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="hd-top">
+        <div class="h"><div class="t">Chats</div><div class="s"><span class="pulse"></span>6 friends active now</div></div>
+        <button class="ic-btn" onclick="location.href='chat-list.html'"><i data-icon="search" data-size="21"></i></button>
+        <button class="ic-btn"><i data-icon="compose" data-size="20"></i></button>
+      </div>
+      <div class="hd-rail" id="rail"></div>
+      <div class="hd-seg" id="seg">
+        <button class="on" data-t="teams" onclick="setTab('teams')">Teams</button>
+        <button data-t="friends" onclick="setTab('friends')">Friends</button>
+      </div>
+      <div class="hd-list" id="list"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/chat-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const C = window.Chat; let tab = "teams";
+    const esc = s => (s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+    const hash = s => { let h=0; for(const c of (s||"")) h=(h*31+c.charCodeAt(0))>>>0; return h; };
+    const pct = c => 45 + hash(c.id)%44;
+    const logging = c => 2 + hash(c.id)%5;
+    const streak = n => 3 + hash(n)%18;
+
+    function rail(){
+      const me = C.person("Ema William");
+      let h = `<div class="hd-live"><div class="hd-ring me"><div class="in" style="background-image:${me.av}">${me.initials}</div></div>
+        <div class="nm">You</div><div class="do">Ready 💪</div></div>`;
+      h += C.ACTIVE.map(a=>{ const p=C.person(a.name);
+        return `<div class="hd-live" onclick="openByName('${esc(a.name)}')"><div class="hd-ring"><div class="in" style="background-image:${p.av}">${p.initials}</div></div>
+          <div class="nm">${esc(p.name.split(" ")[0])}</div><div class="do">${esc(a.doing)}</div></div>`; }).join("");
+      document.getElementById("rail").innerHTML = h;
+    }
+    function setTab(t){ tab=t; document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); render(); }
+
+    function teamCard(c){
+      const avs = (c.memberNames||[]).slice(0,4).map(n=>`<span class="a" style="background-image:${C.person(n).av}"></span>`).join("");
+      const you = c.last?.from==="me"?"<b>You:</b> ":"";
+      const prev = c.last ? you+esc(c.last.text) : "Be the first to start the fun";
+      return `<div class="hd-card" onclick="location.href='huddle-chat.html?id=${c.id}'">
+        <div class="hd-card-h">
+          <div class="hd-cover" style="background-image:${C.grad(c.cover)}"></div>
+          <div class="mid"><div class="nm">${esc(c.name)}</div>
+            <div class="sig"><span class="flame">🔥</span>${logging(c)} logging now · ${c.active} active</div></div>
+          <div class="tm">${c.time}</div>
+        </div>
+        <div class="hd-bar"><i style="width:${pct(c)}%"></i></div>
+        <div class="hd-card-f">
+          <div class="hd-avs">${avs}</div>
+          <div class="prev">${prev}</div>
+          ${c.unread?`<span class="hd-badge">${c.unread}</span>`:""}
+        </div>
+      </div>`;
+    }
+    function friendCard(c){
+      const p=C.person(c.who); const on=p.online;
+      const chip = on?`active now`:`🔥 ${streak(p.name)}-day streak`;
+      const you = c.last?.from==="me"?"<b>You:</b> ":"";
+      const prev = c.last ? (c.last.t==="image"?you+"📷 Photo":you+esc(c.last.text)) : "Tap to chat";
+      return `<div class="hd-fcard" onclick="location.href='huddle-chat.html?id=${c.id}'">
+        <div class="av" style="background-image:${p.av}">${p.initials}${on?'<span class="dot"></span>':''}</div>
+        <div class="mid"><div class="r1"><span class="nm">${esc(p.name)}</span><span class="chip">${chip}</span></div>
+          <div class="prev">${prev}</div></div>
+        <div class="end"><span class="tm">${c.time}</span>${c.unread?`<span class="hd-badge">${c.unread}</span>`:""}</div>
+      </div>`;
+    }
+    function render(){
+      const list=document.getElementById("list");
+      const items = tab==="teams" ? C.groups() : C.friends();
+      list.innerHTML = items.map(c=> tab==="teams"?teamCard(c):friendCard(c)).join("");
+    }
+    function openByName(name){ const f=C.friends().find(c=>c.who===name); location.href='huddle-chat.html?id='+(f?f.id:'anita'); }
+    rail(); render();
+  </script>
+</body>
+</html>

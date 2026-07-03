@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Focus · Messages</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/chat-concepts.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+  <div class="screen-box">
+    <div class="screen fc-screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="fc-top"><div class="t">Messages</div>
+        <button class="ic" onclick="location.href='chat-list.html'"><i data-icon="compose" data-size="19"></i></button></div>
+      <div class="fc-sub">6 conversations · 2 unread</div>
+      <div class="fc-search"><i data-icon="search" data-size="18" style="color:var(--text-tertiary)"></i>
+        <input id="q" placeholder="Search" oninput="render()" /></div>
+      <div class="fc-list" id="list"></div>
+      <div class="fc-hint">← swipe a conversation to mute or delete</div>
+    </div>
+  </div>
+
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/chat-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const C=window.Chat;
+    const esc=s=>(s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+    function prev(c){ if(!c.last) return "Tap to chat";
+      const you=c.last.from==="me"?"You: ":""; if(c.last.t==="image")return you+"Photo"; if(c.last.t==="gif")return you+"GIF"; return you+c.last.text; }
+    function rowHtml(c){
+      const sq=c.kind==="group"||c.kind==="support"?" sq":"";
+      const on=C.isOnline(c)?'<span class="dot"></span>':'';
+      const ini=c.kind==="friend"?C.person(c.who).initials:C.convInitials(c);
+      return `<div class="fc-row${c.unread?' unread':''}" data-id="${c.id}">
+        <div class="fc-actions"><button class="mute" onclick="act('${c.id}','mute')"><i data-icon="bell-off" data-size="18"></i>Mute</button>
+          <button class="del" onclick="act('${c.id}','del')"><i data-icon="trash" data-size="18"></i>Delete</button></div>
+        <div class="fc-row-in">
+          <div class="fc-av${sq}" style="background-image:${C.convAvatar(c)}">${sq?'':ini}${on}</div>
+          <div class="fc-mid"><div class="nm">${esc(C.convTitle(c))}</div><div class="pv">${esc(prev(c))}</div></div>
+          <div class="fc-end"><span class="tm">${c.time}</span>${c.unread?'<span class="fc-dot"></span>':''}</div>
+        </div></div>`;
+    }
+    function render(){
+      const q=(document.getElementById("q").value||"").toLowerCase().trim();
+      let items=C.all(); if(q) items=items.filter(c=>C.convTitle(c).toLowerCase().includes(q));
+      const list=document.getElementById("list");
+      list.innerHTML=items.map(rowHtml).join("");
+      window.Icons.init(list);
+      list.querySelectorAll(".fc-row").forEach(row=>{
+        const inner=row.querySelector(".fc-row-in"); let sx=0,dx=0,drag=false,open=false;
+        const set=v=>inner.style.transform=`translateX(${v}px)`;
+        row.querySelector(".fc-row-in").addEventListener("pointerdown",e=>{ sx=e.clientX; drag=true; inner.style.transition="none"; });
+        window.addEventListener("pointermove",e=>{ if(!drag)return; dx=Math.max(-168,Math.min(0,(e.clientX-sx)+(open?-168:0))); set(dx); });
+        window.addEventListener("pointerup",()=>{ if(!drag)return; drag=false; inner.style.transition="";
+          open = dx < -80; set(open?-168:0); });
+        inner.addEventListener("click",e=>{ if(open){ open=false; set(0); return; } if(Math.abs(dx)<6) location.href='focus-chat.html?id='+row.dataset.id; });
+      });
+    }
+    function act(id,what){ const c=C.byId(id);
+      if(what==="mute"){ c.muted=!c.muted; render(); }
+      else { const i=C.CONVOS.findIndex(x=>x.id===id); if(i>=0)C.CONVOS.splice(i,1); render(); } }
+    render();
+  </script>
+</body>
+</html>

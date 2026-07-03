@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Conversation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/chat.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:14px">🌙</button>
+
+  <div class="screen-box">
+    <div class="cd-screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+
+      <!-- app bar -->
+      <div class="cd-bar">
+        <button class="ic-btn" onclick="location.href='chat-list.html'"><i data-icon="back" data-size="22"></i></button>
+        <div class="cd-peer" id="peer" onclick="openPeer()"></div>
+        <button class="ic-btn" onclick="openOverflow(event)"><i data-icon="more-vertical" data-size="22"></i></button>
+      </div>
+
+      <!-- messages -->
+      <div class="cd-body" id="body" onscroll="onScroll()"></div>
+
+      <!-- input area (or blocked banner) -->
+      <div id="inputArea"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/chat-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const C = window.Chat, ME = "Ema William";
+    const id = new URLSearchParams(location.search).get("id") || "anita";
+    const conv = C.byId(id) || C.CONVOS[0];
+    let msgs = conv.msgs.map(m => Object.assign({}, m)); // working copy
+    let replyTo = null, editId = null, pendingImg = null;
+    const esc = s => (s||"").replace(/[&<>]/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+    const first = n => (n==="me"?"You":C.person(n).name.split(" ")[0]);
+
+    /* ── app bar ── */
+    function renderBar(){
+      const el = document.getElementById("peer");
+      if (conv.kind === "support"){
+        el.innerHTML = `<div class="av" style="background-image:${C.grad(conv.cover)}">⚡</div>
+          <div style="min-width:0"><div class="nm">${esc(conv.name)} ${Icons.svg('success',15)}</div>
+          <div class="st online"><span class="live"></span>Official account · replies in a few hours</div></div>`;
+      } else if (conv.kind === "friend"){
+        const p = C.person(conv.who);
+        const online = p.online;
+        el.innerHTML = `<div class="av" style="background-image:${p.av}">${p.initials}${online?'<span class="dot"></span>':''}</div>
+          <div style="min-width:0"><div class="nm">${esc(p.name)}</div>
+          <div class="st ${online?'online':''}">${online?'<span class="live"></span>Online':'Last seen 8:12 AM'}</div></div>`;
+      } else {
+        el.innerHTML = `<div class="av sq" style="background-image:${C.grad(conv.cover)}"></div>
+          <div style="min-width:0"><div class="nm">${esc(conv.name)}</div>
+          <div class="st"><span class="live"></span>${conv.members} members · ${conv.active} active</div></div>`;
+      }
+      window.Icons.init(el.parentElement);
+    }
+
+    /* ── message helpers ── */
+    function fmtText(m){
+      let t = esc(m.text);
+      // mentions
+      (m.mentions||[]).forEach(name=>{
+        if (name==="all") t = t.replace(/@all/g, `<span class="mention">@all</span>`);
+        else t = t.replace("@"+esc(name), `<span class="mention">@${esc(name)}</span>`);
+      });
+      // links
+      t = t.replace(/((https?:\/\/|www\.|buzzend\.com)[^\s]+)/g, u=>`<a href="#" onclick="return linkTap()">${u}</a>`);
+      return t;
+    }
+    function linkTap(){ Buzzend.alert({title:"Open link",message:"This would open inside Buzzend (challenge leaderboard).",confirmLabel:"Got it",icon:"info"}); return false; }
+    function tick(m){
+      if (m.from!=="me") return "";
+      if (m.status==="seen"){
+        if (conv.kind==="group" && m.seenBy) return `<span class="seenlbl" onclick="seenBy('${m.id}')">Seen by ${m.seenBy.length}</span>`;
+        return `<span class="tick seen">${Icons.svg('checks',14)}</span><span class="seenlbl">Seen</span>`;
+      }
+      if (m.status==="delivered") return `<span class="tick">${Icons.svg('checks',14)}</span>`;
+      return `<span class="tick">${Icons.svg('check',13)}</span>`;
+    }
+    function reactsHtml(m){
+      if (!m.react || !Object.keys(m.react).length) return "";
+      const chips = C.reactList(m.react).map(r=>{
+        const mine = r.by.includes(ME);
+        return `<span class="cd-chip${mine?' mine':''}" onclick="whoReacted('${m.id}')">${r.emoji}${r.by.length>1?' '+r.by.length:''}</span>`;
+      }).join("");
+      return `<div class="cd-reacts">${chips}</div>`;
+    }
+    function replyQuoteHtml(m){
+      if (!m.replyTo) return "";
+      const src = msgs.find(x=>x.id===m.replyTo); if(!src) return "";
+      const who = src.from==="me"?"You":first(src.from);
+      const tx = src.deleted?"Message deleted":(src.t==="image"?"📷 Photo":(src.t==="gif"?"GIF":src.text));
+      return `<div class="cd-reply"><div class="who">${esc(who)}</div><div class="tx">${esc(tx)}</div></div>`;
+    }
+    function bubbleInner(m){
+      if (m.deleted) return `<div class="cd-bub gone">${Icons.svg('block',15)}Message deleted</div>`;
+      if (m.t==="emoji") return `<div class="cd-bub emoji" data-mid="${m.id}">${esc(m.text)}</div>`;
+      if (m.t==="image" || m.t==="gif"){
+        const tag = m.t==="gif"?`<span class="gif-tag">GIF</span>`:"";
+        const cap = (m.caption && m.t!=="gif")?`<div class="cd-cap">${fmtText({text:m.caption,mentions:[]})}</div>`:"";
+        return `<div class="cd-bub media" data-mid="${m.id}">
+          <div class="cd-media" style="background-image:${C.grad(m.img)}" onclick="viewImg('${m.img}','${esc(m.caption||'')}')">${tag}</div>${cap}</div>`;
+      }
+      return `<div class="cd-bub" data-mid="${m.id}">${replyQuoteHtml(m)}${fmtText(m)}</div>`;
+    }
+
+    /* ── main render ── */
+    function renderBody(){
+      const body = document.getElementById("body");
+      if (!msgs.length){
+        body.innerHTML = emptyState();
+        window.Icons.init(body); return;
+      }
+      let h = conv.kind === "support"
+        ? `<div class="cd-e2e" style="background:color-mix(in srgb,var(--primary) 12%,transparent)">${Icons.svg('info',14)} You're chatting with the Buzzend team. Please don't share passwords.</div>`
+        : `<div class="cd-e2e">${Icons.svg('lock',14)} Messages are end-to-end encrypted. Not even Buzzend can read them.</div>`;
+      h += `<div class="cd-date">Today</div>`;
+      const real = msgs;
+      real.forEach((m,i)=>{
+        if (m.t==="system"){ h += `<div class="cd-sys">${esc(m.text)}</div>`; return; }
+        const prev = real[i-1], next = real[i+1];
+        const firstOfRun = !prev || prev.from!==m.from || prev.t==="system";
+        const lastOfRun = !next || next.from!==m.from || next.t==="system";
+        const me = m.from==="me";
+        const p = me?null:C.person(m.from);
+        const sender = (!me && conv.kind==="group" && firstOfRun)
+          ? `<div class="cd-sender" style="color:${nameColor(m.from)}" onclick="openProfile('${esc(m.from)}')">${esc(p.name)}</div>` : "";
+        const avatar = me ? "" :
+          `<div class="sav ${lastOfRun?'':'hidden'}" style="background-image:${p.av}" onclick="openProfile('${esc(m.from)}')">${lastOfRun?p.initials:''}</div>`;
+        const foot = lastOfRun && !m.deleted ? `<div class="cd-foot">
+            <span class="tm">${m.ts}</span>${m.edited?'<span class="ed">· edited</span>':''}${tick(m)}</div>` : "";
+        h += `<div class="cd-msg ${me?'me':'them'}">${avatar}
+            <div class="cd-stack">${sender}${bubbleInner(m)}${reactsHtml(m)}${foot}</div>
+          </div>`;
+      });
+      // typing
+      if (conv.typing){
+        const p = C.person(conv.typing);
+        h += `<div class="cd-typing"><div class="sav" style="background-image:${p.av}"></div>
+          <div class="dots"><span></span><span></span><span></span></div></div>`;
+      }
+      body.innerHTML = h;
+      window.Icons.init(body);
+      // long-press on bubbles
+      body.querySelectorAll("[data-mid]").forEach(el=>{
+        const mid = el.getAttribute("data-mid");
+        let timer=null, longed=false;
+        const start=()=>{ longed=false; timer=setTimeout(()=>{ longed=true; openCtx(mid, el); },420); };
+        const clear=()=>{ if(timer)clearTimeout(timer); };
+        el.addEventListener("pointerdown",start);
+        el.addEventListener("pointerup",clear); el.addEventListener("pointerleave",clear); el.addEventListener("pointermove",clear);
+        el.addEventListener("contextmenu",e=>{ e.preventDefault(); openCtx(mid, el); });
+      });
+      scrollBottom();
+    }
+    function nameColor(name){ const c=["#e0922a","#7c5ce0","#2a9d8f","#c0398e","#3b6eff","#ef4444"];
+      let s=0; for(const ch of name) s+=ch.charCodeAt(0); return c[s%c.length]; }
+
+    function emptyState(){
+      return `<div class="cd-empty">
+        <svg class="ill" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 30h55a12 12 0 0 1 12 12v20a12 12 0 0 1-12 12H45l-18 14V74h-7a12 12 0 0 1-12-12V42A12 12 0 0 1 20 30Z"/>
+          <circle cx="37" cy="52" r="2.5" fill="currentColor" stroke="none"/><circle cx="50" cy="52" r="2.5" fill="currentColor" stroke="none"/><circle cx="63" cy="52" r="2.5" fill="currentColor" stroke="none"/>
+          <path d="M92 58h8a10 10 0 0 1 10 10v12a10 10 0 0 1-10 10h-4v10l-12-10" opacity=".55"/>
+        </svg>
+        <div class="t">The chat is empty</div>
+        <div class="d">Be the first to start the fun 🎉</div>
+      </div>`;
+    }
+
+    /* ── input ── */
+    function renderInput(){
+      const area = document.getElementById("inputArea");
+      if (conv.blocked){
+        area.innerHTML = `<div class="cd-blocked">You can't reply to this conversation.<br><b>You blocked ${esc(C.convTitle(conv))}.</b></div>`;
+        return;
+      }
+      let previews = "";
+      if (editId){ const m=msgs.find(x=>x.id===editId);
+        previews += `<div class="cd-preview edit"><div class="bar"></div><div class="pmid">
+          <div class="plabel">${Icons.svg('edit',13)} Editing message</div>
+          <div class="ptext">${esc(m.text)}</div></div>
+          <button class="px" onclick="cancelEdit()">${Icons.svg('x',15)}</button></div>`;
+      }
+      if (replyTo){ const m=msgs.find(x=>x.id===replyTo);
+        const who = m.from==="me"?"You":first(m.from);
+        const tx = m.t==="image"?"📷 Photo":(m.t==="gif"?"GIF":m.text);
+        previews += `<div class="cd-preview"><div class="bar"></div><div class="pmid">
+          <div class="plabel">${Icons.svg('reply',13)} Replying to ${esc(who)}</div>
+          <div class="ptext">${esc(tx)}</div></div>
+          ${m.t==="image"?`<div class="pthumb" style="background-image:${C.grad(m.img)}"></div>`:""}
+          <button class="px" onclick="cancelReply()">${Icons.svg('x',15)}</button></div>`;
+      }
+      if (pendingImg){
+        previews += `<div class="cd-preview"><div class="pthumb" style="background-image:${C.grad(pendingImg)};width:46px;height:46px"></div>
+          <div class="pmid"><div class="plabel">${Icons.svg('image',13)} Photo ready</div>
+          <div class="ptext">Add a caption or send</div></div>
+          <button class="px" onclick="clearImg()">${Icons.svg('x',15)}</button></div>`;
+      }
+      area.innerHTML = `<div class="cd-input-wrap" style="position:relative">
+        <div id="mentionPop"></div>
+        ${previews}
+        <div class="cd-input">
+          <button class="rnd" onclick="openAttach()">${Icons.svg('plus',22)}</button>
+          <div class="field">
+            <textarea id="ta" rows="1" placeholder="Message…" oninput="onType()" onkeydown="onKey(event)"></textarea>
+            <button class="emoji-btn" onclick="openEmoji()">😊</button>
+          </div>
+          <button class="send" onclick="send()">${Icons.svg('send',20)}</button>
+        </div>
+      </div>`;
+      window.Icons.init(area);
+      autosize();
+    }
+    function autosize(){ const ta=document.getElementById("ta"); if(!ta)return;
+      ta.style.height="auto"; ta.style.height=Math.min(ta.scrollHeight,110)+"px"; }
+
+    function onType(){ autosize(); mentionCheck(); }
+    function onKey(e){ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } }
+
+    function send(){
+      const ta=document.getElementById("ta"); const val=(ta.value||"").trim();
+      if (editId){ const m=msgs.find(x=>x.id===editId); if(val){ m.text=val; m.edited=true; } editId=null; ta.value=""; renderInput(); renderBody(); return; }
+      if (!val && !pendingImg) return;
+      const nid = "n"+Date.now();
+      if (pendingImg){
+        msgs.push({ id:nid, from:"me", t:"image", img:pendingImg, caption:val, ts:"9:41 AM", status:"sent", replyTo });
+        pendingImg=null;
+      } else {
+        const isEmoji = /^\p{Extended_Pictographic}{1,3}$/u.test(val);
+        msgs.push({ id:nid, from:"me", t:isEmoji?"emoji":"text", text:val, ts:"9:41 AM", status:"sent", replyTo });
+      }
+      replyTo=null; ta.value=""; renderInput(); renderBody();
+      // fake delivery→seen progression
+      setTimeout(()=>{ const m=msgs.find(x=>x.id===nid); if(m){m.status="delivered"; renderBody();} },700);
+      setTimeout(()=>{ const m=msgs.find(x=>x.id===nid); if(m){m.status="seen"; if(conv.kind==="group")m.seenBy=conv.memberNames.slice(0,3); renderBody();} },1600);
+    }
+
+    /* ── attach / emoji ── */
+    function openAttach(){
+      Buzzend.sheet({ title:"Share", html:
+        `<div class="attach-grid">
+          <button onclick="pickImg('#1f6e5f,#2a9d8f')"><span class="ic" style="background:linear-gradient(135deg,#1f6e5f,#2a9d8f)">${Icons.svg('camera',26)}</span>Camera</button>
+          <button onclick="pickImg('#5a3a8a,#7c5ce0')"><span class="ic" style="background:linear-gradient(135deg,#5a3a8a,#7c5ce0)">${Icons.svg('image',26)}</span>Photo</button>
+          <button onclick="pickGif()"><span class="ic" style="background:linear-gradient(135deg,#e0922a,#e25b40)">${Icons.svg('gif',26)}</span>GIF</button>
+        </div>` });
+      setTimeout(()=>window.Icons.init(document.querySelector('.bz-overlay')),0);
+    }
+    const closeSheet=()=>{ const o=document.querySelector('.bz-overlay'); if(o){o.classList.remove('open');setTimeout(()=>o.remove(),200);} };
+    function pickImg(g){ pendingImg=g; closeSheet(); renderInput(); }
+    function clearImg(){ pendingImg=null; renderInput(); }
+    function pickGif(){ closeSheet(); msgs.push({id:"g"+Date.now(),from:"me",t:"gif",img:"#e0922a,#e25b40",ts:"9:41 AM",status:"sent"}); renderBody(); }
+    function openEmoji(){
+      Buzzend.sheet({ title:"Emoji", html:`<div class="emoji-grid">${C.EMOJIS.map(e=>`<button onclick="insertEmoji('${e}')">${e}</button>`).join("")}</div>` });
+    }
+    function insertEmoji(e){ const ta=document.getElementById("ta"); ta.value+=e; closeSheet(); ta.focus(); autosize(); }
+
+    /* ── mentions autocomplete ── */
+    function mentionCheck(){
+      const pop=document.getElementById("mentionPop"); const ta=document.getElementById("ta");
+      const m=(ta.value||"").match(/@(\w*)$/);
+      if(!m){ pop.innerHTML=""; return; }
+      const q=m[1].toLowerCase();
+      let cand;
+      if (conv.kind==="group") cand = [{name:"all",label:"Everyone",av:"linear-gradient(135deg,var(--primary),var(--primary-deep))",ini:"@"}].concat(
+            conv.memberNames.map(n=>({name:n,label:C.person(n).name,av:C.person(n).av,ini:C.person(n).initials})));
+      else if (conv.kind==="friend") cand = [{name:conv.who,label:C.person(conv.who).name,av:C.person(conv.who).av,ini:C.person(conv.who).initials}];
+      else { pop.innerHTML=""; return; } // support: no mentions
+      cand=cand.filter(c=>c.name.toLowerCase().includes(q)||c.label.toLowerCase().includes(q));
+      if(!cand.length){ pop.innerHTML=""; return; }
+      pop.innerHTML=`<div class="cd-mentions">${cand.slice(0,5).map(c=>
+        `<div class="mi" onclick="pickMention('${c.name==='all'?'all':esc(c.name)}')">
+          <div class="av" style="background-image:${c.av}">${c.ini}</div>
+          <div><div class="nm">${esc(c.label)}</div>${c.name!=='all'?`<div class="h">@${esc(c.name.split(' ')[0].toLowerCase())}</div>`:""}</div>
+        </div>`).join("")}</div>`;
+    }
+    function pickMention(name){ const ta=document.getElementById("ta");
+      ta.value=ta.value.replace(/@(\w*)$/, "@"+(name==="all"?"all":name)+" ");
+      document.getElementById("mentionPop").innerHTML=""; ta.focus(); autosize(); }
+
+    /* ── long-press context menu ── */
+    function openCtx(mid, el){
+      const m=msgs.find(x=>x.id===mid); if(!m||m.deleted) return;
+      const box=document.querySelector(".screen-box").getBoundingClientRect();
+      const r=el.getBoundingClientRect();
+      const me=m.from==="me";
+      const canText = m.t==="text"||m.t==="emoji";
+      let acts = `<button onclick="doReply('${mid}')">${Icons.svg('reply',18)}Reply</button>`;
+      if (canText) acts += `<button onclick="doCopy('${mid}')">${Icons.svg('copy',18)}Copy</button>`;
+      acts += `<button onclick="doForward('${mid}')">${Icons.svg('forward',18)}Forward</button>`;
+      if (me && canText) acts += `<button onclick="doEdit('${mid}')">${Icons.svg('edit',18)}Edit</button>`;
+      if (me) acts += `<button class="danger" onclick="doDelete('${mid}')">${Icons.svg('trash',18)}Delete</button>`;
+
+      const quick = `<div class="cd-ctx-quick">${C.QUICK.map(e=>`<button onclick="quickReact('${mid}','${e}')">${e}</button>`).join("")}
+        <button class="more" onclick="pickReactEmoji('${mid}')">${Icons.svg('plus',18)}</button></div>`;
+
+      let top = r.top - box.top;
+      // clamp so quick row + menu fit
+      const needBelow = 60 + (r.height) + 60 + (canText?260:210);
+      if (top + needBelow > box.height) top = Math.max(70, box.height - needBelow);
+      const ov=document.createElement("div"); ov.className="cd-ctx-ov";
+      ov.innerHTML=`<div class="cd-ctx-anchor ${me?'me':''}" style="top:${top}px;${me?'right:12px':'left:'+(me?0:Math.max(12,r.left-box.left))+'px'}">
+        ${quick}
+        <div class="cd-ctx-bub"><div class="cd-msg ${me?'me':'them'}" style="max-width:75vw">${bubbleInner(m)}</div></div>
+        <div class="cd-ctx-menu">${acts}</div>
+      </div>`;
+      ov.addEventListener("click",e=>{ if(e.target===ov) closeCtx(); });
+      document.querySelector(".screen-box").appendChild(ov);
+      window.Icons.init(ov);
+      requestAnimationFrame(()=>ov.classList.add("open"));
+    }
+    function closeCtx(){ const o=document.querySelector(".cd-ctx-ov"); if(o){o.classList.remove("open");setTimeout(()=>o.remove(),200);} }
+    function doReply(mid){ replyTo=mid; closeCtx(); renderInput(); document.getElementById("ta").focus(); }
+    function doForward(mid){ closeCtx(); Buzzend.sheet({title:"Forward to…", html:forwardList(mid)}); }
+    function forwardList(mid){ return `<div class="sheet-list">`+C.CONVOS.filter(c=>c.id!==conv.id).map(c=>
+      `<div class="sheet-person" onclick="closeSheet();toast('Forwarded')">
+        <div class="av${c.kind==='group'?'':''}" style="background-image:${C.convAvatar(c)};border-radius:${c.kind==='group'?'12px':'50%'}">${c.kind==='group'?'':C.convInitials(c)}</div>
+        <div class="nm">${esc(C.convTitle(c))}</div><span class="meta">${c.kind==='group'?'Group':'Friend'}</span></div>`).join("")+`</div>`; }
+    function doCopy(mid){ const m=msgs.find(x=>x.id===mid); navigator.clipboard&&navigator.clipboard.writeText(m.text||"").catch(()=>{}); closeCtx(); toast("Copied"); }
+    function doEdit(mid){ editId=mid; closeCtx(); renderInput(); const ta=document.getElementById("ta"); ta.value=msgs.find(x=>x.id===mid).text; ta.focus(); autosize(); }
+    function cancelEdit(){ editId=null; document.getElementById("ta").value=""; renderInput(); }
+    function cancelReply(){ replyTo=null; renderInput(); }
+    function doDelete(mid){ closeCtx(); setTimeout(()=>Buzzend.confirm({title:"Delete message?",message:"This deletes it for everyone in the chat.",confirmLabel:"Delete",danger:true,icon:"trash",
+      onConfirm:()=>{ const m=msgs.find(x=>x.id===mid); m.deleted=true; m.text=""; renderBody(); }}),210); }
+
+    /* ── reactions ── */
+    function quickReact(mid,e){ toggleReact(mid,e); closeCtx(); }
+    function pickReactEmoji(mid){ closeCtx(); setTimeout(()=>Buzzend.sheet({title:"React",
+      html:`<div class="emoji-grid">${C.EMOJIS.map(e=>`<button onclick="closeSheet();toggleReact('${mid}','${e}')">${e}</button>`).join("")}</div>`}),210); }
+    function toggleReact(mid,e){
+      const m=msgs.find(x=>x.id===mid); m.react=m.react||{};
+      const hadThis = !!(m.react[e] && m.react[e].includes(ME));
+      // one reaction per user: clear my previous reaction from every emoji
+      Object.keys(m.react).forEach(k=>{ m.react[k]=m.react[k].filter(n=>n!==ME); if(!m.react[k].length) delete m.react[k]; });
+      // if I wasn't already on this emoji, add it (tapping the same one just removes)
+      if (!hadThis) m.react[e]=(m.react[e]||[]).concat(ME);
+      renderBody();
+    }
+    function whoReacted(mid){
+      const m=msgs.find(x=>x.id===mid); const list=C.reactList(m.react);
+      const all=[]; list.forEach(r=>r.by.forEach(n=>all.push({n,e:r.emoji})));
+      const tabs=`<div class="sheet-tabs"><button class="on" onclick="filterReact(this,'all')">All ${all.length}</button>`+
+        list.map(r=>`<button onclick="filterReact(this,'${r.emoji}')">${r.emoji} ${r.by.length}</button>`).join("")+`</div>`;
+      const rows=all.map(x=>personRow(x.n, x.e, x.n===ME)).join("");
+      Buzzend.sheet({title:"Reactions", html:tabs+`<div class="sheet-list" id="reactList">${rows}</div>`});
+      window._reactAll=all;
+    }
+    function filterReact(btn,f){ document.querySelectorAll(".sheet-tabs button").forEach(b=>b.classList.remove("on")); btn.classList.add("on");
+      const all=window._reactAll||[]; const rows=(f==="all"?all:all.filter(x=>x.e===f)).map(x=>personRow(x.n,x.e,x.n===ME)).join("");
+      document.getElementById("reactList").innerHTML=rows; }
+    function personRow(name,emoji,mine){ const p=C.person(name);
+      return `<div class="sheet-person"><div class="av" style="background-image:${p.av}">${p.initials}</div>
+        <div class="nm">${esc(p.name)}${mine?' <span class="meta">(you)</span>':''}</div>
+        <span class="emo">${emoji}</span>
+        ${mine?`<button class="rm" onclick="removeMyReact()">${Icons.svg('x',14)}</button>`:''}</div>`; }
+    function removeMyReact(){ closeSheet(); toast("Reaction removed"); }
+
+    /* ── seen by (group) ── */
+    function seenBy(mid){ const m=msgs.find(x=>x.id===mid); const seen=m.seenBy||[];
+      const times=["9:41 AM","9:40 AM","9:38 AM","9:35 AM","9:30 AM"];
+      const rows=conv.memberNames.map((n,i)=>{ const p=C.person(n); const s=seen.includes(n);
+        return `<div class="sheet-person"><div class="av" style="background-image:${p.av}">${p.initials}${p.online?'<span class="dot"></span>':''}</div>
+          <div style="flex:1"><div class="nm" style="flex:none">${esc(p.name)}</div>
+          <div class="meta">${s?'Seen '+times[i%times.length]:'Delivered'}</div></div>
+          ${s?`<span style="color:var(--secondary);display:inline-flex">${Icons.svg('checks',16)}</span>`:`<span style="color:var(--text-tertiary);display:inline-flex">${Icons.svg('check',15)}</span>`}</div>`;
+      }).join("");
+      Buzzend.sheet({title:`Seen by ${seen.length} of ${conv.members}`, html:`<div class="sheet-list">${rows}</div>`});
+    }
+
+    /* ── overflow / peer / profile / image ── */
+    function openOverflow(e){
+      e.stopPropagation();
+      const isG = conv.kind==="group", isS = conv.kind==="support", isF = conv.kind==="friend";
+      const item=(icon,label,cls,fn)=>`<button class="${cls||''}" onclick="${fn}">${Icons.svg(icon,18)}${label}</button>`;
+      let items = item(conv.muted?'bell':'bell-off', conv.muted?'Unmute':'Mute', '', 'ovMute()');
+      items += item('search','Search in chat','','ovSearch()');
+      if (isG) items += item('users','View members','','ovMembers()');
+      if (isG) items += item('info','Challenge details','','openPeer()');
+      if (isS) items += item('success','Mark resolved','','ovResolve()');
+      if (isF) items += item('user','View profile','','openPeer()');
+      if (isF) items += item('block','Block','danger','ovBlock()');
+      if (!isS) items += item('flag','Report','danger','ovReport()');
+      items += item('trash','Delete chat','danger','ovDelete()');
+      const scrim=document.createElement("div"); scrim.className="cd-menu-scrim"; scrim.onclick=closePop;
+      const pop=document.createElement("div"); pop.className="cd-pop"; pop.innerHTML=items;
+      const sb=document.querySelector(".screen-box"); sb.appendChild(scrim); sb.appendChild(pop);
+      window.Icons.init(pop);
+    }
+    function closePop(){ document.querySelectorAll(".cd-pop,.cd-menu-scrim").forEach(n=>n.remove()); }
+    function ovMute(){ conv.muted=!conv.muted; closePop(); toast(conv.muted?"Muted":"Unmuted"); }
+    function ovSearch(){ closePop(); Buzzend.alert({title:"Search in chat",message:"Find messages, media and links in this conversation.",confirmLabel:"Got it",icon:"search"}); }
+    function ovMembers(){ closePop(); const rows=conv.memberNames.map(n=>{ const p=C.person(n);
+      const admin = n===conv.memberNames[0];
+      return `<div class="sheet-person"><div class="av" style="background-image:${p.av}">${p.initials}${p.online?'<span class="dot"></span>':''}</div>
+        <div class="nm">${esc(p.name)}</div>${admin?'<span class="meta">Admin</span>':(p.online?'<span class="meta">Active</span>':'')}</div>`;}).join("");
+      Buzzend.sheet({title:`${conv.members} members`, html:`<div class="sheet-list">${rows}
+        <div class="sheet-person" style="color:var(--text-tertiary);font:700 13px var(--font);justify-content:center;padding-top:12px">+ ${conv.members-conv.memberNames.length} more</div></div>`}); }
+    function ovBlock(){ closePop(); Buzzend.confirm({title:`Block ${esc(C.convTitle(conv))}?`,message:"They won't be able to message you.",confirmLabel:"Block",danger:true,icon:"block",onConfirm:()=>{conv.blocked=true;renderInput();}}); }
+    function ovReport(){ closePop(); Buzzend.confirm({title:"Report conversation?",message:"Our team will review this chat.",confirmLabel:"Report",danger:true,icon:"flag",onConfirm:()=>toast("Reported")}); }
+    function ovDelete(){ closePop(); Buzzend.confirm({title:"Delete chat?",message:"This removes the conversation from your list.",confirmLabel:"Delete",danger:true,icon:"trash",onConfirm:()=>location.href='chat-list.html'}); }
+
+    function ovResolve(){ closePop(); Buzzend.confirm({title:"Mark as resolved?",message:"Let us know your issue is sorted. You can always reopen it.",confirmLabel:"Resolve",icon:"success",onConfirm:()=>toast("Marked resolved")}); }
+    function openPeer(){ closePop();
+      if(conv.kind==="friend") openProfile(conv.who);
+      else if(conv.kind==="support") Buzzend.alert({title:"Buzzend Support",message:"The official Buzzend account. Our team typically replies within a few hours.",confirmLabel:"Got it",icon:"success"});
+      else Buzzend.alert({title:conv.name,message:`${conv.members} members · ${conv.active} active now. Opens the challenge detail.`,confirmLabel:"Got it",icon:"trophy"}); }
+    function openProfile(name){ Buzzend.alert({title:C.person(name).name,message:"Opens this member's profile.",confirmLabel:"Got it",icon:"user"}); }
+
+    function viewImg(g,cap){
+      const v=document.createElement("div"); v.className="img-viewer";
+      v.innerHTML=`<button class="close">${Icons.svg('x',22)}</button><div class="full" style="background-image:${C.grad(g)}"></div>${cap?`<div class="cap">${esc(cap)}</div>`:""}`;
+      v.onclick=()=>{ v.classList.remove("open"); setTimeout(()=>v.remove(),200); };
+      document.querySelector(".screen-box").appendChild(v); window.Icons.init(v);
+      requestAnimationFrame(()=>v.classList.add("open"));
+    }
+
+    /* ── misc ── */
+    function toast(msg){ let t=document.querySelector(".cd-toast");
+      if(!t){ t=document.createElement("div"); t.className="cd-toast"; document.querySelector(".screen-box").appendChild(t); }
+      t.innerHTML=`${Icons.svg('check',15)} ${esc(msg)}`; window.Icons.init(t);
+      requestAnimationFrame(()=>t.classList.add("show")); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1600); }
+    function scrollBottom(){ const b=document.getElementById("body"); b.scrollTop=b.scrollHeight; hideFab(); }
+    function onScroll(){ const b=document.getElementById("body");
+      const atBottom = b.scrollHeight-b.scrollTop-b.clientHeight < 40;
+      let fab=document.getElementById("fab");
+      if(atBottom){ if(fab)fab.remove(); return; }
+      if(!fab){ fab=document.createElement("button"); fab.id="fab"; fab.className="cd-tobottom"; fab.onclick=scrollBottom;
+        fab.innerHTML=Icons.svg('chevron-down',20); document.querySelector(".cd-body").appendChild(fab); window.Icons.init(fab); } }
+    function hideFab(){ const f=document.getElementById("fab"); if(f)f.remove(); }
+
+    renderBar(); renderBody(); renderInput();
+  </script>
+</body>
+</html>

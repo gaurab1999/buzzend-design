@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Focus · Conversation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/chat-concepts.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:14px">🌙</button>
+  <div class="screen-box">
+    <div class="fc-cscreen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;􀙇&nbsp;&nbsp;100%</span></div>
+      <div class="fc-cbar" id="bar"></div>
+      <div class="fc-cbody" id="body"></div>
+      <div class="fc-cinput">
+        <button class="plus"><i data-icon="plus" data-size="22"></i></button>
+        <input id="ta" placeholder="Message" />
+        <button class="send" onclick="send()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/chat-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const C=window.Chat;
+    const id=new URLSearchParams(location.search).get("id")||"anita";
+    const conv=C.byId(id)||C.friends()[0];
+    const grp=conv.kind!=="friend";
+    const esc=s=>(s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+    let msgs=conv.msgs.map(m=>({...m}));
+
+    function bar(){
+      let title=C.convTitle(conv), st;
+      if(conv.kind==="friend") st=C.isOnline(conv)?'<span class="st on">Active now</span>':'<span class="st">Last seen 8:12 AM</span>';
+      else if(conv.kind==="support") st='<span class="st">Official account</span>';
+      else st=`<span class="st">${conv.members} members</span>`;
+      document.getElementById("bar").innerHTML=`<button class="ic" onclick="location.href='focus-list.html'"><i data-icon="back" data-size="22"></i></button>
+        <div class="peer"><div class="nm">${esc(title)}</div>${st}</div>
+        <button class="ic"><i data-icon="more-vertical" data-size="21"></i></button>`;
+      window.Icons.init(document.getElementById("bar"));
+    }
+    function render(){
+      const body=document.getElementById("body");
+      let h=`<div class="fc-day">Today</div>`;
+      msgs.forEach(m=>{
+        if(m.t==="system") return;
+        const me=m.from==="me";
+        let inner;
+        if(m.t==="image"||m.t==="gif") inner=`<div class="bub" style="padding:5px"><div class="img" style="background-image:${C.grad(m.img)}"></div>${m.caption?`<div style="padding:7px 6px 2px">${esc(m.caption)}</div>`:""}</div>`;
+        else if(m.deleted) inner=`<span class="bub" style="opacity:.5;font-style:italic">Message deleted</span>`;
+        else inner=`<span class="bub">${esc(m.text)}</span>`;
+        h+=`<div class="fc-m ${me?'me':'them'}">${grp&&!me?`<div style="font:700 12px var(--font);color:var(--text-tertiary);margin-bottom:4px">${esc(C.person(m.from).name)}</div>`:""}${inner}<div class="tm">${m.ts}${me&&m.status==='seen'?' · Seen':''}</div></div>`;
+      });
+      body.innerHTML=h; body.scrollTop=body.scrollHeight;
+    }
+    function send(){ const ta=document.getElementById("ta"); const v=(ta.value||"").trim(); if(!v)return;
+      msgs.push({id:"m"+Date.now(),from:"me",t:"text",text:v,ts:"9:41 AM",status:"seen"}); ta.value=""; render(); }
+    document.getElementById("ta").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();send();} });
+    bar(); render();
+  </script>
+</body>
+</html>
