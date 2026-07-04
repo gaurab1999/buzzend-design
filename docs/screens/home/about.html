@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · About</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/home.css" />
+  <link rel="stylesheet" href="../../css/screens/settings.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:18px">🌙</button>
+  <div class="screen-box">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
+      <div class="sub-bar"><button class="sub-back" onclick="location.href='settings.html'"><i data-icon="back" data-size="22"></i></button><div class="sub-title">Buzzend<span class="v">v2.4.1</span></div></div>
+      <div class="scroll sub-body" id="content"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const link = (icon, tint, label, on) => `<div class="ab-link" onclick="${on}">
+      <div class="ic" style="color:${tint};background:color-mix(in srgb,${tint} 13%,transparent)">${Icons.svg(icon, 18)}</div>
+      <div class="l">${label}</div><span class="ext" style="font:700 11px var(--font);color:var(--text-tertiary)">Web ↗</span></div>`;
+    document.getElementById("content").innerHTML = `
+      <div class="ab-logo"><div class="ab-mark">${Icons.svg("zap", 40)}</div>
+        <div class="ab-name">Buzzend</div><div class="ab-ver">Version 2.4.1 (build 240)</div>
+        <div class="ab-up" onclick="Buzzend.alert({icon:'check',title:'You're up to date',message:'You have the latest version of Buzzend.'})">${Icons.svg("check", 14)} You're up to date</div></div>
+      <div class="ab-sec">Legal &amp; help</div>
+      <div class="ab-card">
+        ${link("shield", "#e35d42", "Privacy Policy", "window.open('https://buzzend.com/#/privacy','_blank')")}
+        <div class="ab-div"></div>
+        ${link("info", "var(--primary)", "Terms & Conditions", "window.open('https://buzzend.com/#/terms','_blank')")}
+        <div class="ab-div"></div>
+        ${link("comment", "#e35d42", "FAQs", "window.open('https://buzzend.com/#/faqs','_blank')")}
+        <div class="ab-div"></div>
+        ${link("send", "#f5a623", "Contact us", "window.open('https://buzzend.com/#/contact-us','_blank')")}
+      </div>
+      <div class="ab-copy">© 2026 Buzzend · Made for people who count.</div>`;
+    Icons.init(document.getElementById("content"));
+  </script>
+</body>
+</html>

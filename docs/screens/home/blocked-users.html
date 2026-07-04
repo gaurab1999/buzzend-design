@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Blocked Users</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/home.css" />
+  <link rel="stylesheet" href="../../css/screens/settings.css" />
+</head>
+<body>
+  <div class="state-switch">
+    <button data-v="list" onclick="setV('list')">List</button>
+    <button data-v="empty" onclick="setV('empty')">Empty</button>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:64px">🌙</button>
+
+  <div class="screen-box">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
+      <div class="sub-bar"><button class="sub-back" onclick="location.href='settings.html'"><i data-icon="back" data-size="22"></i></button><div class="sub-title">Blocked Users</div></div>
+      <div class="scroll sub-body" id="content"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const grad = (a) => `linear-gradient(135deg,${a})`;
+    let BLOCKED = window.Social.PEOPLE.slice(2, 5).map((p, i) => ({ name: p.name, av: p.av, initials: p.initials, phone: ["+1 555 018 2299", "+1 555 704 1180", ""][i], unblocked: false }));
+    function render(state) {
+      const c = document.getElementById("content");
+      if (state === "empty" || BLOCKED.every(b => b.unblocked)) {
+        c.innerHTML = `<div class="bl-empty"><div class="ic">${Icons.svg("block", 38)}</div><div class="t">No blocked users</div>
+          <div class="d">People you block won't be able to find your profile, follow you, or join your challenges.</div></div>`;
+      } else {
+        c.innerHTML = `<div class="bl-note">${BLOCKED.filter(b => !b.unblocked).length} blocked · they can't see your profile or challenges.</div>` +
+          BLOCKED.map((b, i) => b.unblocked ? "" : `<div class="bl-row" id="bl-${i}">
+            <div class="bl-av" style="background-image:${grad(b.av)}">${b.initials}</div>
+            <div style="flex:1;min-width:0"><div class="bl-nm">${b.name}</div>${b.phone ? `<div class="bl-ph">${b.phone}</div>` : ""}</div>
+            <button class="bl-unblock" onclick="unblock(${i})">Unblock</button></div>`).join("");
+      }
+      Icons.init(c);
+      document.querySelectorAll(".state-switch button").forEach(x => x.classList.toggle("active", x.dataset.v === state));
+    }
+    function unblock(i) {
+      const btn = document.querySelector(`#bl-${i} .bl-unblock`); btn.textContent = "Unblocked"; btn.classList.add("done");
+      BLOCKED[i].unblocked = true;
+      setTimeout(() => render(BLOCKED.every(b => b.unblocked) ? "empty" : "list"), 700);
+    }
+    function setV(v) { if (v === "list") BLOCKED.forEach(b => b.unblocked = false); render(v); }
+    render(new URLSearchParams(location.search).get("v") || "list");
+  </script>
+</body>
+</html>

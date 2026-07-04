@@ -197,7 +197,7 @@ window.Challenges = (function () {
   function back() { cur.view = "hub"; cur.detailId = null; rerender(); }
   function retry() { cur.view = "hub"; cur.state = "today"; rerender(); }
   function record(id) { location.href = "../workout/moment.html"; }
-  function create() { Buzzend.alert({ icon: "plus", title: "Create a challenge", message: "The 3-step create flow (exercise · schedule · invite) is the next increment." }); }
+  function create() { location.href = "create-challenge.html"; }
   function join(id, btn) { const c = S.CHALLENGES.find((x) => x.id === id); if (c) c.joined = true; if (btn) { btn.textContent = "Joined ✓"; btn.classList.remove("btn-primary"); btn.classList.add("btn-social"); } if (cur.view === "detail") rerender(); else Buzzend.alert({ icon: "trophy", title: "You're in!", message: "You joined “" + (c ? c.n : "the challenge") + "”. Record a set to climb the board." }); }
   return { render, rerender, openDetail, openDiscover, back, retry, record, create, join, menu, closeSheet, leave };
 })();

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Buzzend · Help & Support</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
+  <link rel="stylesheet" href="../../css/screens/home.css" />
+  <link rel="stylesheet" href="../../css/screens/settings.css" />
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" style="top:18px">🌙</button>
+  <div class="screen-box">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
+      <div class="sub-bar"><button class="sub-back" onclick="location.href='settings.html'"><i data-icon="back" data-size="22"></i></button><div class="sub-title">Help &amp; Support</div></div>
+      <div class="scroll sub-body" id="content"></div>
+    </div>
+  </div>
+
+  <script src="../../js/components/dialog.js"></script>
+  <script src="../../js/components/icons.js"></script>
+  <script src="../../js/app.js"></script>
+  <script>
+    const CATS = ["General", "Account Problem", "Bug Report", "Feature Request", "Other"];
+    function render() {
+      document.getElementById("content").innerHTML = `
+        <div class="sp-wrap"><div class="sp-card">
+          <div class="sp-h">How can we help you?</div>
+          <div class="sp-sub">Fill out the form and our support team will get back to you — usually within a day.</div>
+          <div class="sp-field"><label>Category</label>
+            <select class="sp-select" id="sp-cat">${CATS.map(c => `<option>${c}</option>`).join("")}</select></div>
+          <div class="sp-field"><label>Subject</label>
+            <input class="sp-input" id="sp-sub" placeholder="Short summary of your issue" autocomplete="off"></div>
+          <div class="sp-field"><label>Message</label>
+            <textarea class="sp-textarea" id="sp-msg" placeholder="Describe your issue in detail"></textarea></div>
+          <div class="sp-err" id="sp-err"></div>
+          <button class="sp-send" id="sp-send" onclick="submitForm()">${Icons.svg("send", 17)} Send to Support</button>
+        </div>
+        <div class="sp-alt">
+          <a href="mailto:support@buzzend.com">${Icons.svg("send", 15)} Email us</a>
+          <a onclick="window.open('https://buzzend.com/#/faqs','_blank')">${Icons.svg("info", 15)} Browse FAQs</a>
+        </div>
+        <div style="height:20px"></div></div>`;
+      Icons.init(document.getElementById("content"));
+    }
+    function submitForm() {
+      const sub = document.getElementById("sp-sub"), msg = document.getElementById("sp-msg"), err = document.getElementById("sp-err");
+      if (!sub.value.trim()) { err.textContent = "Subject is required."; sub.focus(); return; }
+      if (!msg.value.trim()) { err.textContent = "Message is required."; msg.focus(); return; }
+      err.textContent = "";
+      const btn = document.getElementById("sp-send"); btn.disabled = true; btn.textContent = "Sending…";
+      setTimeout(() => {
+        Buzzend.alert({ icon: "check", title: "Support request sent", message: "Thanks! We've received your message and will reply by email soon." });
+        setTimeout(() => location.href = "settings.html", 300);
+      }, 900);
+    }
+    render();
+  </script>
+</body>
+</html>

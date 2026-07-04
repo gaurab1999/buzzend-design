@@ -3,52 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Buzzend · Profile</title>
+  <title>Buzzend · Discover</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../../css/tokens.css" />
   <link rel="stylesheet" href="../../css/palettes.css" />
   <link rel="stylesheet" href="../../css/fonts.css" />
   <link rel="stylesheet" href="../../css/app.css" />
   <link rel="stylesheet" href="../../css/screens/home.css" />
-  <link rel="stylesheet" href="../../css/screens/profile.css" />
+  <link rel="stylesheet" href="../../css/screens/discover.css" />
 </head>
 <body>
   <div class="state-switch">
-    <button data-v="1" onclick="setV('1')">Stats</button>
-    <button data-v="2" onclick="setV('2')">Social</button>
-    <button data-v="3" onclick="setV('3')">Dashboard</button>
+    <button data-v="loaded" onclick="setV('loaded')">Discover</button>
+    <button data-v="emptyfilter" onclick="setV('emptyfilter')">Empty filter</button>
+    <button data-v="loading" onclick="setV('loading')">Loading</button>
   </div>
   <button class="theme-toggle" onclick="toggleTheme()" style="top:64px">🌙</button>
 
   <div class="screen-box">
     <div class="screen">
       <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
-      <div class="pf-top"><button class="pf-ic" onclick="location.href='home-v7.html'"><i data-icon="chevron" data-size="20"></i></button>
-        <div class="t">Profile</div><button class="pf-ic" onclick="location.href='settings.html'"><i data-icon="sliders" data-size="18"></i></button></div>
-      <div class="scroll pf-scroll" id="content"></div>
+      <div id="dchead"></div>
+      <div class="scroll dc-body" id="content"></div>
     </div>
     <div class="bottom-nav">
       <a class="nav-item" href="home-v7.html"><span class="ic"><i data-icon="home" data-size="22"></i></span>Home</a>
-      <a class="nav-item" href="challenges.html"><span class="ic"><i data-icon="trophy" data-size="22"></i></span>Challenges</a>
+      <a class="nav-item active"><span class="ic"><i data-icon="trophy" data-size="22"></i></span>Challenges</a>
       <div class="nav-fab"><button onclick="location.href='../workout/moment.html'"><i data-icon="plus" data-size="26"></i></button></div>
       <a class="nav-item" href="activity.html"><span class="ic"><i data-icon="activity" data-size="22"></i></span>Activity</a>
-      <a class="nav-item active"><span class="ic"><i data-icon="user" data-size="22"></i></span>Profile</a>
+      <a class="nav-item" href="profile.html"><span class="ic"><i data-icon="user" data-size="22"></i></span>Profile</a>
     </div>
   </div>
 
   <script src="../../js/components/dialog.js"></script>
   <script src="../../js/components/icons.js"></script>
   <script src="../../js/screens/social-data.js"></script>
-  <script src="../../js/screens/profile.js"></script>
+  <script src="../../js/screens/discover.js"></script>
   <script src="../../js/app.js"></script>
   <script>
+    document.getElementById("dchead").innerHTML = Discover.header();
+    window.Icons.init(document.getElementById("dchead"));
     function render(v) {
-      document.getElementById("content").innerHTML = Profile.render(v);
+      document.getElementById("content").innerHTML = Discover.render(v);
       window.Icons.init(document.getElementById("content"));
       document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.v === v));
     }
     function setV(v) { render(v); }
-    render(new URLSearchParams(location.search).get("v") || "1");
+    const _p = new URLSearchParams(location.search);
+    render(_p.get("v") || "loaded");
+    if (_p.get("dialog")) Discover.joinCode();
   </script>
 </body>
 </html>
