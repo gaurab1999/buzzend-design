@@ -168,6 +168,10 @@
 .ta-tab svg { width:14px; height:14px; }
 .ta-wrap.scope-top .ta-friends { display:none; }
 .ta-wrap.scope-friends .ta-top { display:none; }
+/* horizontal scroll (V7) — cards side by side, peek next */
+.ta-list { display:flex; gap:12px; overflow-x:auto; padding:2px 2px 6px; margin:0 -2px; scrollbar-width:none; scroll-snap-type:x proximity; }
+.ta-list::-webkit-scrollbar { display:none; }
+.ta-list > .fc2-card, .ta-list > .fa-card, .ta-list > .fb-card { flex:none; width:278px; margin-bottom:0; scroll-snap-align:start; }
 .ta-rank { width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none;
   font:900 12px var(--font); color:#fff; background:var(--primary); }
 .ta-rank.rank1 { background:#f6cf4b; color:#1b1b1b; } .ta-rank.rank2 { background:#c8ced6; color:#1b1b1b; } .ta-rank.rank3 { background:#e0a06a; color:#1b1b1b; }

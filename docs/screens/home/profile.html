@@ -11,20 +11,33 @@
   <link rel="stylesheet" href="../../css/app.css" />
   <link rel="stylesheet" href="../../css/screens/home.css" />
   <link rel="stylesheet" href="../../css/screens/profile.css" />
+  <style>
+    .pf-ctl { position:fixed; top:58px; left:50%; transform:translateX(-50%); z-index:60; display:flex; gap:8px; align-items:center; }
+    .pf-ctl select { font:800 12px var(--font); border:1px solid var(--border); background:var(--surface); color:var(--text-primary);
+      border-radius:99px; padding:7px 12px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.12); }
+  </style>
 </head>
 <body>
   <div class="state-switch">
-    <button data-v="1" onclick="setV('1')">Stats</button>
-    <button data-v="2" onclick="setV('2')">Social</button>
-    <button data-v="3" onclick="setV('3')">Dashboard</button>
+    <button data-v="1" onclick="setV('1')">Hero</button>
+    <button data-v="2" onclick="setV('2')">Card</button>
+    <button data-v="3" onclick="setV('3')">Minimal</button>
   </div>
-  <button class="theme-toggle" onclick="toggleTheme()" style="top:64px">🌙</button>
+  <div class="pf-ctl">
+    <select id="scen" onchange="setScen(this.value)" title="Whose profile / state">
+      <option value="me">Your profile</option>
+      <option value="friend">Friend (following)</option>
+      <option value="followback">Follows you (follow back)</option>
+      <option value="stranger">Other user</option>
+      <option value="newuser">New user (empty)</option>
+      <option value="blocked">Blocked user</option>
+    </select>
+    <button class="theme-toggle" onclick="toggleTheme()" style="position:static;box-shadow:0 4px 14px rgba(0,0,0,.12)">🌙</button>
+  </div>
 
   <div class="screen-box">
     <div class="screen">
       <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
-      <div class="pf-top"><button class="pf-ic" onclick="location.href='home-v7.html'"><i data-icon="chevron" data-size="20"></i></button>
-        <div class="t">Profile</div><button class="pf-ic" onclick="location.href='settings.html'"><i data-icon="sliders" data-size="18"></i></button></div>
       <div class="scroll pf-scroll" id="content"></div>
     </div>
     <div class="bottom-nav">
@@ -42,13 +55,17 @@
   <script src="../../js/screens/profile.js"></script>
   <script src="../../js/app.js"></script>
   <script>
-    function render(v) {
-      document.getElementById("content").innerHTML = Profile.render(v);
-      window.Icons.init(document.getElementById("content"));
-      document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.v === v));
-    }
-    function setV(v) { render(v); }
-    render(new URLSearchParams(location.search).get("v") || "1");
+    const _p = new URLSearchParams(location.search);
+    // ?user=<name> from other screens → resolve to a scenario; default own profile
+    const scenParam = _p.get("scenario") || (_p.get("user") ? "friend" : "me");
+    let curV = _p.get("v") || "1";
+    const content = document.getElementById("content");
+    function paint() { document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.v === curV)); }
+    function setV(v) { curV = v; Profile.setV(v); paint(); }
+    function setScen(s) { Profile.setScenario(s); }
+    document.getElementById("scen").value = scenParam;
+    Profile.start(content, curV, scenParam, _p.get("tab"));
+    paint();
   </script>
 </body>
 </html>

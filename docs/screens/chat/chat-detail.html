@@ -417,7 +417,7 @@
       if(conv.kind==="friend") openProfile(conv.who);
       else if(conv.kind==="support") Buzzend.alert({title:"Buzzend Support",message:"The official Buzzend account. Our team typically replies within a few hours.",confirmLabel:"Got it",icon:"success"});
       else Buzzend.alert({title:conv.name,message:`${conv.members} members · ${conv.active} active now. Opens the challenge detail.`,confirmLabel:"Got it",icon:"trophy"}); }
-    function openProfile(name){ Buzzend.alert({title:C.person(name).name,message:"Opens this member's profile.",confirmLabel:"Got it",icon:"user"}); }
+    function openProfile(name){ location.href="../home/profile.html?user="+encodeURIComponent(C.person(name).name); }
 
     function viewImg(g,cap){
       const v=document.createElement("div"); v.className="img-viewer";

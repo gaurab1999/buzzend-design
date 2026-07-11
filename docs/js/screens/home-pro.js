@@ -291,6 +291,25 @@ window.HomePro = (function () {
       <div class="fi-cap"><span class="fi-tag">${I(p.ex || "activity", 13)} ${p.tag}</span>${p.action ? `<div class="fi-action">${p.action}</div>` : ""}</div></div>`).join("");
   }
 
+  // Immersive PRO · full-bleed reels feed (community.css cf-*), no filter tabs.
+  // Breaks out of the home scroll's 18px padding to sit edge-to-edge.
+  function feedImmersivePro(state, d) {
+    const h = sec("Community", state === "full");
+    if (!d.feed.length) return feedEmpty(h);
+    return h + `<div class="cf-imm" style="margin:0 -18px">` + d.feed.map((p, i) => `<div class="cf-post">
+      <div class="cf-media" style="background:${media(i)}"><span class="cf-wm">${I(p.ex || "activity", 130)}</span>
+        <span class="cf-tag">${I(p.ex || "activity", 13)} ${p.tag}</span><span class="cf-dur"><span class="rd"></span>${p.dur || ""}</span>
+        <span class="cf-playbig"><i>${I("play", 24)}</i></span>
+        <div class="cf-rail">
+          <button onclick="this.classList.toggle('liked')"><span class="ib">${I("heart", 22)}</span>${p.likes}</button>
+          <button><span class="ib">${I("eye", 22)}</span>${fmt(p.views || 0)}</button>
+          <button onclick="Buzzend.alert({icon:'share',title:'Share post',message:'Send this clip to friends or your story.'})"><span class="ib">${I("share", 20)}</span>Share</button></div>
+        <div class="cf-scrim"><div class="cf-author"><div class="av" ${avatar(AVS[i % 3])}></div>
+          <div><b>${p.n}</b><div class="tm">${p.t} ago</div></div>
+          <button class="cf-follow" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'Following':'Follow'">Follow</button></div>
+          <div class="cf-cap">${p.action || ""}</div></div></div></div>`).join("") + `</div>`;
+  }
+
   /* ════ Combined "Today" card — daily goal + today's workouts in ONE card ════
      kind: 'spot' (V4, dark) · 'banner' (V5, light) · 'hero' (V6, gradient).
      The colored goal header and the workout log share a single card. */
@@ -353,7 +372,7 @@ window.HomePro = (function () {
   function comboWorkouts(state, d, kind, opts) {
     const layout = kind === "banner" ? "rail" : kind === "hero" ? "grid" : "list";
     const has = d.sessions && d.sessions.length;
-    const head = `<div class="combo-sec"><h3>Today's workouts</h3>${has ? '<a href="#">See all</a>' : ""}</div>`;
+    const head = `<div class="combo-sec"><h3>Today's workouts</h3>${has ? '<a href="my-workouts.html">See all</a>' : ""}</div>`;
     if (!has) {
       return head + `<div class="combo-empty"><div class="ce-ic">${I("activity", 30)}</div>
         <div class="ce-t">No workouts yet today</div>
@@ -394,7 +413,7 @@ window.HomePro = (function () {
 
   /* ── Active challenges (V7) — circular progress ring + group-chat button ── */
   function challengesPro(state, d) {
-    const h = sec("Active challenges", state === "full");
+    const h = `<div class="sec"><h2>Active challenges</h2><a href="my-challenges.html">See all</a></div>`;
     if (!d.challenges.length) return h + H.empty("trophy", "No challenges yet", "Join a challenge to compete with friends and stay motivated.", "Browse challenges");
     return h + `<div class="h-scroll">` + d.challenges.map((c) => {
       const ring = H.ring({ pct: c.p, size: 50, r: 21, stroke: 5.5, track: "var(--surface-alt)", prog: "var(--primary)", center: `<div class="cx-pct">${c.p}%</div>` });
@@ -585,7 +604,7 @@ window.HomePro = (function () {
 
   function topActivities(state, d, variant) {
     variant = variant || "chips";
-    const h = sec("Top activities", state === "full");
+    const h = `<div class="sec"><h2>Top activities</h2><a href="top-activities.html">See all</a></div>`;
     const card = CARDS[variant] || cardChips;
     const wrap = (html) => variant === "compact" ? `<div class="fco-list">${html}</div>` : html;
     const tabs = `<div class="ta-tabs">
@@ -604,5 +623,5 @@ window.HomePro = (function () {
 
   return { goalSpotlight, aiBand, aiPulse, aiMomentum, goalBanner, statTiles, momentumHero, statPills,
     leaderPodium, leaderList, leagueBoard, friendsRail, friendsActivity, friendsChips, friendsBars, friendsCompact,
-    topActivities, scope, challengesPro, feedTabs, switchTab, feed, feedActivity, feedImmersive, todayCard };
+    topActivities, scope, challengesPro, feedTabs, switchTab, feed, feedActivity, feedImmersive, feedImmersivePro, todayCard };
 })();

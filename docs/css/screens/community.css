@@ -1,0 +1,114 @@
+/* Community — impressive full-bleed feed (no left/right margins). Media spans edge
+   to edge. 3 designs: Immersive (reels overlay + rail), Story (media + info strip),
+   Explore (edge-to-edge mosaic). Token + palette aware. */
+.cf { padding:0; }
+
+/* sticky glass header (the only place with inner padding) */
+.cf-top { position:sticky; top:0; z-index:20; background:color-mix(in srgb,var(--surface) 88%,transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--border); padding:10px 16px 0; }
+.cf-toprow { display:flex; align-items:center; gap:10px; }
+.cf-title { font:900 22px var(--font); color:var(--text-primary); flex:1; }
+.cf-ic { width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text-primary); display:grid; place-items:center; cursor:pointer; }
+.cf-tabs { display:flex; gap:22px; margin-top:12px; }
+.cf-tab { padding:0 0 11px; font:800 14px var(--font); color:var(--text-tertiary); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-1px; }
+.cf-tab.on { color:var(--text-primary); border-bottom-color:var(--primary); }
+
+/* shared media block */
+.cf-media { position:relative; width:100%; overflow:hidden; display:grid; place-items:center; }
+.cf-wm { color:rgba(255,255,255,.14); }
+.cf-tag { position:absolute; top:14px; left:14px; z-index:2; display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.4); backdrop-filter:blur(6px); color:#fff; border-radius:99px; padding:6px 12px; font:800 11.5px var(--font); }
+.cf-dur { position:absolute; top:14px; right:14px; z-index:2; display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.4); backdrop-filter:blur(6px); color:#fff; border-radius:99px; padding:6px 11px; font:800 11px var(--font); }
+.cf-dur .rd { width:7px; height:7px; border-radius:50%; background:#ff5a52; }
+.cf-playbig { position:absolute; inset:0; display:grid; place-items:center; z-index:2; }
+.cf-playbig i { width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,.16); backdrop-filter:blur(8px); border:1.5px solid rgba(255,255,255,.5); display:grid; place-items:center; color:#fff; }
+
+/* ── Immersive (reels overlay + right rail) ── */
+.cf-post { position:relative; }
+.cf-post + .cf-post { margin-top:3px; }
+.cf-imm .cf-media { aspect-ratio:4/5; }
+.cf-rail { position:absolute; right:10px; bottom:104px; z-index:3; display:flex; flex-direction:column; gap:18px; align-items:center; }
+.cf-rail button { background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px; color:#fff; font:800 12px var(--font); }
+.cf-rail .ib { width:46px; height:46px; border-radius:50%; background:rgba(0,0,0,.3); backdrop-filter:blur(6px); display:grid; place-items:center; }
+.cf-rail button.liked .ib { background:#e5524a; }
+.cf-scrim { position:absolute; inset:auto 0 0 0; z-index:2; padding:16px 76px 18px 16px; background:linear-gradient(transparent,rgba(0,0,0,.28) 40%,rgba(0,0,0,.82)); color:#fff; }
+.cf-author { display:flex; align-items:center; gap:10px; }
+.cf-author .av { width:38px; height:38px; border-radius:50%; border:2px solid #fff; flex:none; }
+.cf-author b { font:800 14px var(--font); } .cf-author .tm { font:700 12px var(--font); opacity:.85; margin-top:1px; }
+.cf-follow { margin-left:auto; border:1.5px solid rgba(255,255,255,.85); background:transparent; color:#fff; border-radius:99px; padding:6px 15px; font:800 12px var(--font); cursor:pointer; }
+.cf-follow.on { background:rgba(255,255,255,.16); border-color:transparent; }
+.cf-cap { font:600 14px var(--font); margin-top:11px; line-height:1.45; }
+
+/* ── Story (edge-to-edge media + info strip) ── */
+.cf-story .cf-media { aspect-ratio:1/1; }
+.cf-story .cf-post { background:var(--surface); }
+.cf-story .cf-post + .cf-post { margin-top:8px; }
+.cf-shead { display:flex; align-items:center; gap:10px; padding:11px 14px; }
+.cf-shead .av { width:38px; height:38px; border-radius:50%; flex:none; }
+.cf-shead b { font:800 14px var(--font); color:var(--text-primary); }
+.cf-shead .tm { font:700 12px var(--font); color:var(--text-tertiary); margin-top:1px; }
+.cf-shead .tag2 { margin-left:auto; display:inline-flex; align-items:center; gap:5px; font:800 11px var(--font); color:var(--primary); background:color-mix(in srgb,var(--primary) 12%,transparent); border-radius:99px; padding:5px 11px; }
+.cf-sactions { display:flex; align-items:center; gap:22px; padding:12px 16px 4px; }
+.cf-sactions button { background:none; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font:800 14px var(--font); color:var(--text-secondary); }
+.cf-sactions button.liked { color:#e5524a; }
+.cf-sactions .share { margin-left:auto; }
+.cf-scap { padding:2px 16px 14px; font:600 13.5px var(--font); color:var(--text-primary); line-height:1.45; }
+.cf-scap b { font-weight:800; }
+
+/* ── carousel (multiple assets: image / video) ── */
+.cf-carousel { position:absolute; inset:0; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; }
+.cf-carousel::-webkit-scrollbar { display:none; }
+.cf-slide { flex:none; width:100%; height:100%; scroll-snap-align:start; position:relative; display:grid; place-items:center; }
+.cf-slide .sl-wm { position:absolute; color:rgba(255,255,255,.14); }
+.cf-slide .sl-play { width:58px; height:58px; border-radius:50%; background:rgba(255,255,255,.16); backdrop-filter:blur(8px); border:1.5px solid rgba(255,255,255,.5); display:grid; place-items:center; color:#fff; z-index:1; }
+.cf-dots { position:absolute; top:13px; left:50%; transform:translateX(-50%); z-index:5; display:flex; gap:5px; }
+.cf-dots i { width:6px; height:6px; border-radius:99px; background:rgba(255,255,255,.5); transition:.2s; }
+.cf-dots i.on { width:18px; background:#fff; }
+.cf-rep { position:absolute; top:14px; right:14px; z-index:5; display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.42); backdrop-filter:blur(6px); color:#fff; border-radius:99px; padding:6px 12px; font:900 12px var(--font); }
+.cf-rep .z { color:#ffd66b; display:inline-flex; }
+.cf-count { position:absolute; top:14px; right:14px; z-index:5; display:inline-flex; align-items:center; gap:5px; background:rgba(0,0,0,.42); backdrop-filter:blur(6px); color:#fff; border-radius:99px; padding:6px 11px; font:800 11px var(--font); }
+.cf-cap .cf-chip2 { display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:rgba(255,255,255,.16); color:#fff; border-radius:99px; padding:5px 11px; font:800 11.5px var(--font); }
+
+/* story extras */
+.cf-story .cf-carousel { position:relative; inset:auto; height:100%; }
+.cf-schip { display:inline-flex; align-items:center; gap:6px; margin:0 16px; font:800 11.5px var(--font); color:var(--primary); background:color-mix(in srgb,var(--primary) 12%,transparent); border-radius:99px; padding:5px 11px; }
+
+/* ── post detail viewer — TikTok-style vertical pager (endless) ──
+   swipe up/down = next/prev post · swipe left/right = assets of that post. */
+.cf-viewer { position:fixed; inset:0; z-index:60; background:#000; overflow:hidden; animation:cf-vfade .2s ease; max-width:390px; margin:0 auto; }
+@media (max-width:430px){ .cf-viewer { max-width:none; } }
+@keyframes cf-vfade { from{opacity:0} to{opacity:1} }
+.cf-vfeed { height:100%; overflow-y:auto; scroll-snap-type:y mandatory; scrollbar-width:none; overscroll-behavior:contain; }
+.cf-vfeed::-webkit-scrollbar { display:none; }
+.cf-vpost { position:relative; height:100%; scroll-snap-align:start; scroll-snap-stop:always; overflow:hidden; }
+.cf-vassets { position:absolute; inset:0; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; }
+.cf-vassets::-webkit-scrollbar { display:none; }
+.cf-vslide { flex:none; width:100%; height:100%; scroll-snap-align:start; position:relative; display:grid; place-items:center; }
+.cf-vslide .sl-wm { position:absolute; color:rgba(255,255,255,.16); }
+.cf-vslide .sl-play { width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,.16); backdrop-filter:blur(8px); border:1.5px solid rgba(255,255,255,.5); display:grid; place-items:center; color:#fff; z-index:1; }
+.cf-vscrim { position:absolute; inset:0; z-index:2; background:linear-gradient(180deg,rgba(0,0,0,.4) 0%,transparent 20%,transparent 58%,rgba(0,0,0,.82)); pointer-events:none; }
+.cf-vdots { position:absolute; top:58px; left:50%; transform:translateX(-50%); z-index:5; display:flex; gap:5px; }
+.cf-vdots i { width:6px; height:6px; border-radius:99px; background:rgba(255,255,255,.5); transition:.2s; }
+.cf-vdots i.on { width:18px; background:#fff; }
+.cf-vback { position:absolute; top:52px; left:14px; z-index:9; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,.32); backdrop-filter:blur(6px); color:#fff; border:none; display:grid; place-items:center; cursor:pointer; }
+.cf-vtag { position:absolute; top:56px; right:14px; z-index:6; display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,.42); backdrop-filter:blur(6px); color:#fff; border-radius:99px; padding:7px 13px; font:800 12px var(--font); }
+.cf-vrail { position:absolute; right:12px; bottom:118px; z-index:6; display:flex; flex-direction:column; gap:18px; align-items:center; }
+.cf-vrail button { background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px; color:#fff; font:800 12px var(--font); }
+.cf-vrail .ib { width:48px; height:48px; border-radius:50%; background:rgba(0,0,0,.32); backdrop-filter:blur(6px); display:grid; place-items:center; }
+.cf-vrail button.liked .ib { background:#e5524a; }
+.cf-vbottom { position:absolute; left:16px; right:76px; bottom:40px; z-index:6; color:#fff; }
+.cf-vauthor { display:flex; align-items:center; gap:10px; }
+.cf-vauthor .av { width:40px; height:40px; border-radius:50%; border:2px solid #fff; flex:none; }
+.cf-vauthor b { font:800 14px var(--font); } .cf-vauthor .tm { font:700 12px var(--font); opacity:.85; margin-top:1px; }
+.cf-vfollow { margin-left:auto; border:1.5px solid rgba(255,255,255,.85); background:transparent; color:#fff; border-radius:99px; padding:6px 14px; font:800 12px var(--font); cursor:pointer; }
+.cf-vfollow.on { background:rgba(255,255,255,.16); border-color:transparent; }
+.cf-vaction { font:600 13.5px var(--font); opacity:.92; margin-top:6px; }
+.cf-vcap { font:600 14px var(--font); margin-top:8px; line-height:1.45; }
+.cf-vchip { display:inline-flex; align-items:center; gap:6px; margin-top:11px; background:rgba(255,255,255,.16); backdrop-filter:blur(6px); color:#fff; border-radius:99px; padding:7px 13px; font:800 12px var(--font); }
+
+/* ── Explore (edge-to-edge mosaic) ── */
+.cf-grid { display:grid; grid-template-columns:1fr 1fr 1fr; grid-auto-rows:1fr; gap:3px; }
+.cf-tile { position:relative; aspect-ratio:1; overflow:hidden; display:grid; place-items:center; cursor:pointer; }
+.cf-tile.tall { grid-row:span 2; aspect-ratio:auto; }
+.cf-tile .cf-wm { color:rgba(255,255,255,.18); }
+.cf-tile .ov { position:absolute; left:7px; bottom:6px; z-index:2; display:inline-flex; align-items:center; gap:4px; color:#fff; font:800 11px var(--font); text-shadow:0 1px 4px rgba(0,0,0,.6); }
+.cf-tile .pl { position:absolute; top:7px; right:7px; z-index:2; color:#fff; opacity:.92; }
+.cf-tile .tg { position:absolute; top:7px; left:7px; z-index:2; color:#fff; opacity:.92; }

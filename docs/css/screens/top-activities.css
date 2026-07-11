@@ -1,0 +1,21 @@
+/* Top activities · See all — Global / Friends ranking with your rank pinned on top,
+   then the same activity card design used on Home. Reuses home-pro fc2-card. */
+.taf-top { display:flex; align-items:center; gap:8px; padding:4px 14px 10px; }
+.taf-back { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:var(--text-primary); cursor:pointer; border:none; background:none; margin-left:-6px; }
+.taf-title { font:900 20px var(--font); color:var(--text-primary); }
+.taf-tabs { padding:2px 16px 0; }
+.taf-body { padding:14px 16px 34px; }
+
+/* your rank (pinned, per tab) */
+.taf-you { display:flex; align-items:center; gap:13px; background:var(--surface); border:1.5px solid var(--primary); border-radius:16px; padding:14px; box-shadow:var(--shadow-card); margin-bottom:16px; }
+.taf-you .rk { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:none; font:900 16px var(--font); color:var(--on-primary); background:var(--primary); }
+.taf-you .av { width:44px; height:44px; border-radius:50%; flex:none; }
+.taf-you .tx { flex:1; min-width:0; }
+.taf-you .t { font:700 12px var(--font); color:var(--text-tertiary); }
+.taf-you .s { font:800 14.5px var(--font); color:var(--text-primary); margin-top:2px; }
+.taf-you .s b { color:var(--primary); }
+
+.taf-label { font:800 12px var(--font); letter-spacing:.5px; color:var(--text-tertiary); text-transform:uppercase; margin:6px 2px 12px; }
+.taf-badge { font:800 9px var(--font); color:var(--primary); background:color-mix(in srgb,var(--primary) 13%,transparent); padding:2px 7px; border-radius:99px; margin-left:6px; vertical-align:middle; }
+/* highlight the current user's card in the ranked list */
+.fc2-card.ta-me { border-color:var(--primary); background:color-mix(in srgb,var(--primary) 6%,transparent); }

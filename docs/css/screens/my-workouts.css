@@ -1,0 +1,55 @@
+/* Today's workouts · See all — "Workout log". Weekly momentum chart + rich
+   per-session cards grouped by day. Token / palette / dark aware. */
+.wl-top { display:flex; align-items:center; gap:8px; padding:4px 14px 8px; }
+.wl-back { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; color:var(--text-primary); cursor:pointer; border:none; background:none; margin-left:-6px; }
+.wl-title { font:900 20px var(--font); color:var(--text-primary); }
+.wl-title small { display:block; font:700 11.5px var(--font); color:var(--text-tertiary); margin-top:1px; }
+.wl-body { padding:6px 16px 34px; }
+
+/* weekly momentum hero */
+.wl-hero { background:var(--hero-grad); color:#fff; border-radius:22px; padding:18px 18px 16px; box-shadow:var(--shadow-card); }
+.wl-hero-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+.wl-eyebrow { font:800 11px var(--font); letter-spacing:.6px; text-transform:uppercase; opacity:.85; display:flex; align-items:center; gap:6px; }
+.wl-big { font:900 34px var(--font); line-height:1; margin-top:7px; }
+.wl-big span { font:800 14px var(--font); opacity:.9; margin-left:5px; }
+.wl-sub { font:700 12px var(--font); opacity:.9; margin-top:5px; }
+.wl-trend { display:flex; align-items:center; gap:4px; font:800 12px var(--font); background:rgba(255,255,255,.18); padding:6px 10px 6px 8px; border-radius:99px; }
+.wl-trend .wl-up { display:inline-flex; transform:rotate(-90deg); }
+
+.wl-chart { display:flex; gap:9px; align-items:flex-end; }
+.wl-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; }
+.wl-track { width:100%; height:74px; display:flex; align-items:flex-end; justify-content:center; }
+.wl-bar { width:66%; max-width:20px; border-radius:6px 6px 3px 3px; background:rgba(255,255,255,.32); }
+.wl-bar.on { background:#fff; }
+.wl-d { font:800 10px var(--font); opacity:.7; }
+.wl-d.on { opacity:1; }
+
+/* day sections */
+.wl-day { display:flex; align-items:baseline; justify-content:space-between; margin:22px 2px 12px; }
+.wl-day .l { font:900 15px var(--font); color:var(--text-primary); }
+.wl-day .s { font:700 12px var(--font); color:var(--text-tertiary); }
+.wl-day .s b { color:var(--text-secondary); }
+
+.wl-card { display:flex; align-items:center; gap:13px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:13px 14px; box-shadow:var(--shadow-card); margin-bottom:11px; cursor:pointer; }
+.wl-card:active { transform:scale(.995); }
+.wl-ic { width:46px; height:46px; border-radius:14px; flex:none; display:grid; place-items:center; }
+.wl-mid { flex:1; min-width:0; }
+.wl-n { font:900 15px var(--font); color:var(--text-primary); }
+.wl-meta { font:700 12px var(--font); color:var(--text-secondary); margin-top:3px; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.wl-mi { display:inline-flex; align-items:center; gap:5px; }
+.wl-mi svg { opacity:.85; }
+.wl-sep { color:var(--text-tertiary); }
+.wl-end { text-align:right; flex:none; }
+.wl-reps { font:900 18px var(--font); color:var(--text-primary); }
+.wl-reps span { font:800 11px var(--font); color:var(--text-tertiary); margin-left:3px; }
+.wl-kcal { font:700 11.5px var(--font); color:var(--text-tertiary); margin-top:3px; display:flex; align-items:center; justify-content:flex-end; gap:4px; }
+
+/* AI badge chip on card */
+.wl-ai { font:900 8.5px var(--font); letter-spacing:.4px; color:var(--primary); background:color-mix(in srgb,var(--primary) 14%,transparent); padding:2px 6px; border-radius:99px; }
+
+.wl-cta { display:flex; align-items:center; justify-content:center; gap:9px; width:100%; height:52px; border:none; border-radius:16px; background:var(--primary); color:var(--on-primary); font:900 15px var(--font); cursor:pointer; margin-top:20px; box-shadow:var(--shadow-btn); }
+
+.wl-empty { text-align:center; padding:60px 30px; }
+.wl-empty .ic { width:80px; height:80px; border-radius:50%; margin:0 auto 16px; display:grid; place-items:center; color:var(--primary); background:color-mix(in srgb,var(--primary) 12%,transparent); }
+.wl-empty .t { font:900 18px var(--font); color:var(--text-primary); }
+.wl-empty .d { font:600 13.5px var(--font); color:var(--text-secondary); margin:8px auto 18px; max-width:250px; }

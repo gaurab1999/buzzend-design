@@ -10,52 +10,44 @@
   <link rel="stylesheet" href="../../css/fonts.css" />
   <link rel="stylesheet" href="../../css/app.css" />
   <link rel="stylesheet" href="../../css/screens/home.css" />
-  <link rel="stylesheet" href="../../css/screens/home-pro.css" />
+  <link rel="stylesheet" href="../../css/screens/community.css" />
 </head>
 <body>
   <div class="state-switch">
-    <button data-v="1" onclick="setV('1')">Clean card</button>
-    <button data-v="2" onclick="setV('2')">Activity</button>
-    <button data-v="3" onclick="setV('3')">Immersive</button>
+    <button data-v="imm" onclick="setV('imm')">Immersive</button>
+    <button data-v="story" onclick="setV('story')">Story</button>
+    <button data-v="explore" onclick="setV('explore')">Explore</button>
   </div>
-  <button class="theme-toggle" onclick="toggleTheme()" style="top:64px">🌙</button>
+  <button class="theme-toggle" onclick="toggleTheme(); Community.render()" style="top:64px">🌙</button>
 
   <div class="screen-box">
-    <div class="screen home">
+    <div class="screen">
       <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
-      <div class="home-header">
-        <div class="hh-avatar" style="background-image:linear-gradient(135deg,#6a8caf,#33566f)"></div>
-        <div class="hh-greet"><div class="hi">Buzzend</div><div class="nm">Community</div></div>
-        <button class="hh-btn"><i data-icon="search" data-size="19"></i></button>
-        <button class="hh-btn"><i data-icon="bell" data-size="19"></i></button>
-      </div>
-      <div class="scroll" id="content"></div>
+      <div class="scroll cf" id="content" style="padding:0"></div>
     </div>
     <div class="bottom-nav">
-      <a class="nav-item"><span class="ic"><i data-icon="home" data-size="22"></i></span>Home</a>
-      <a class="nav-item"><span class="ic"><i data-icon="trophy" data-size="22"></i></span>Challenges</a>
-      <div class="nav-fab"><button><i data-icon="plus" data-size="26"></i></button></div>
-      <a class="nav-item active"><span class="ic"><i data-icon="activity" data-size="22"></i></span>Activity</a>
-      <a class="nav-item"><span class="ic"><i data-icon="user" data-size="22"></i></span>Profile</a>
+      <a class="nav-item" href="home-v7.html"><span class="ic"><i data-icon="home" data-size="22"></i></span>Home</a>
+      <a class="nav-item" href="challenges.html"><span class="ic"><i data-icon="trophy" data-size="22"></i></span>Challenges</a>
+      <div class="nav-fab"><button onclick="location.href='../workout/moment.html'"><i data-icon="plus" data-size="26"></i></button></div>
+      <a class="nav-item active" href="activity.html"><span class="ic"><i data-icon="activity" data-size="22"></i></span>Activity</a>
+      <a class="nav-item" href="profile.html"><span class="ic"><i data-icon="user" data-size="22"></i></span>Profile</a>
     </div>
   </div>
 
   <script src="../../js/components/dialog.js"></script>
   <script src="../../js/components/icons.js"></script>
-  <script src="../../js/screens/home-data.js"></script>
-  <script src="../../js/screens/home-pro.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
+  <script src="../../js/screens/community.js"></script>
   <script src="../../js/app.js"></script>
   <script>
-    const H = HomeData, P = HomePro;
-    function render(v) {
-      const d = H.DATA.full;
-      const fn = v === "2" ? P.feedActivity : v === "3" ? P.feedImmersive : P.feed;
-      document.getElementById("content").innerHTML = fn("full", d);
-      window.Icons.init(document.getElementById("content"));
+    const app = document.getElementById("content");
+    function setV(v) {
+      Community.start(app, v);
       document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.v === v));
     }
-    function setV(v) { render(v); }
-    render(new URLSearchParams(location.search).get("v") || "1");
+    const _p = new URLSearchParams(location.search);
+    setV(_p.get("v") || "imm");
+    if (_p.get("open") !== null) Community.open(+_p.get("open") || 0);
   </script>
 </body>
 </html>

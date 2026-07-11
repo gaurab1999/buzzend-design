@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../../css/app.css" />
   <link rel="stylesheet" href="../../css/screens/home.css" />
   <link rel="stylesheet" href="../../css/screens/home-pro.css" />
+  <link rel="stylesheet" href="../../css/screens/community.css" />
 </head>
 <body>
   <div class="state-switch">
@@ -42,8 +43,10 @@
 
   <script src="../../js/components/dialog.js"></script>
   <script src="../../js/components/icons.js"></script>
+  <script src="../../js/screens/social-data.js"></script>
   <script src="../../js/screens/home-data.js"></script>
   <script src="../../js/screens/home-pro.js"></script>
+  <script src="../../js/screens/community.js"></script>
   <script src="../../js/app.js"></script>
   <script>
     const H = HomeData, P = HomePro;
@@ -56,8 +59,8 @@
         + P.todayCard(state, d, "banner", { stats: true, addFirst: true }) // goal banner + distance/active + today's workouts (Start another first)
         + (state === "new" ? H.checklist() : "")
         + P.challengesPro(state, d)          // active challenges — ring progress + group chat
-        + P.topActivities(state, d)          // Top activities — Top / Friends scope switch, activity cards
-        + P.feed(state, d);                  // community video feed · likes/views/share
+        + P.topActivities(state, d)          // Top activities — horizontal scroll · Top / Friends
+        + Community.homeFeed(state);         // community — full-bleed immersive, multi-asset, tap → post detail
       document.getElementById("content").innerHTML = h;
       window.Icons.init(document.getElementById("content"));
       document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.st === state));
