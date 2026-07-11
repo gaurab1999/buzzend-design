@@ -1,0 +1,301 @@
+/* Post / Feed → Competition → Leaderboard.
+   The "Beat it" social loop: a pose activity becomes a post; other users
+   challenge it, and each post that carries a competition shows an inline
+   leaderboard. Full leaderboard = leaderboard_screen.dart parity.
+   Reuses .post/.ph/.pmedia/.pactions (home.css) and .lb-* (challenges.css);
+   only the competition-specific pieces live here. */
+
+/* ── feed shell ── */
+.plb-feed { padding: 4px 16px 96px; }
+.plb-tabs-top { display: flex; justify-content: center; border-bottom: 1px solid var(--divider); margin: 0 -16px 14px; }
+.plb-tabs-top .t { padding: 12px 4px 10px; font: 900 15px var(--font); color: var(--text-tertiary); border-bottom: 2.5px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.plb-tabs-top .t.on { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+
+/* ── post header variants ── */
+.post .ph .pn b { font-weight: 900; }
+.post .ph .pn .lite { font-weight: 700; color: var(--text-secondary); }
+.post .ph .pn .lk { color: var(--primary); font-weight: 900; }
+.post .ph .pmeta { display: flex; align-items: center; gap: 5px; }
+.post .ph .pmeta .vis { display: inline-flex; align-items: center; gap: 3px; }
+
+/* video media: thumbnail image with play */
+.post .pmedia.thumb { background-size: cover; background-position: center; }
+.post .pmedia .repchip { position: absolute; left: 12px; top: 12px; background: rgba(0,0,0,.55); color: #fff;
+  border-radius: var(--r-xs); padding: 6px 9px; font: 900 14px var(--font); display: inline-flex; align-items: center; gap: 6px; backdrop-filter: blur(2px); }
+.post .pmedia .bigrep { position: absolute; right: 14px; top: 12px; font: 900 30px var(--font); color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+
+/* reaction row — Beat it lives at the right */
+.post .pactions .spacer { margin-left: auto; }
+.post .pactions .beat-link { color: var(--primary); font-weight: 900; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+
+/* ── inline competition leaderboard card (populated) ── */
+.comp { border-top: 1px solid var(--divider); }
+.comp-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.comp-head .tr { font-size: 26px; line-height: 1; }
+.comp-head .tt { font: 900 15.5px var(--font); color: var(--text-primary); }
+.comp-head .you { margin-left: auto; font: 900 11px var(--font); color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent); padding: 5px 10px; border-radius: 999px; }
+.comp-row { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--divider); }
+.comp-row.me { background: color-mix(in srgb, var(--primary) 7%, transparent); }
+.comp-row .av { width: 42px; height: 42px; border-radius: 50%; flex: none; background: var(--surface-alt) center/cover; }
+.comp-row .nm { flex: 1; min-width: 0; font: 800 15px var(--font); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comp-row .sc { text-align: right; flex: none; }
+.comp-row .sc .r { font: 900 17px var(--font); color: var(--text-primary); }
+.comp-row .sc .r small { font-weight: 800; }
+.comp-row .sc .tm { font: 800 12.5px var(--font); color: var(--text-tertiary); }
+
+/* medal ribbon badge (1 / 2 / 3) */
+.medal { position: relative; width: 34px; flex: none; display: grid; place-items: center; }
+.medal .disc { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font: 900 12px var(--font); color: #fff; box-shadow: inset 0 -3px 5px rgba(0,0,0,.18); }
+.medal.r1 .disc { background: linear-gradient(160deg,#ffd24a,#f5a623); }
+.medal.r2 .disc { background: linear-gradient(160deg,#d7dde3,#a9b2ba); }
+.medal.r3 .disc { background: linear-gradient(160deg,#e2a066,#c07b3e); }
+.medal .rib { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--primary); }
+
+/* record CTA inside card */
+.comp-cta { padding: 14px 16px 16px; }
+.comp-cta .btn { width: 100%; height: 54px; border: none; border-radius: var(--r-pill); background: var(--primary);
+  color: var(--on-primary); font: 900 16px var(--font); box-shadow: var(--shadow-btn); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+
+/* ── inline competition — empty ("Be the first to challenge") ── */
+.comp-empty { border-top: 1px solid var(--divider); padding: 26px 22px 22px; text-align: center; }
+.comp-empty .big { font-size: 46px; }
+.comp-empty .h { font: 900 20px var(--font); color: var(--text-primary); margin-top: 8px; }
+.comp-empty .p { font: 700 15px var(--font); color: var(--text-secondary); line-height: 1.5; margin: 10px 0 18px; }
+.comp-empty .btn { width: 100%; height: 54px; border: none; border-radius: var(--r-pill); background: var(--primary);
+  color: var(--on-primary); font: 900 16px var(--font); box-shadow: var(--shadow-btn); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.comp-empty .btn .pill { font: 900 12.5px var(--font); background: rgba(255,255,255,.22); padding: 4px 12px; border-radius: 999px; }
+.comp-empty.owner .btn { background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary); box-shadow: none; }
+
+/* ═══════════ BEAT IT · "Beat This Score" (beat_it_screen.dart) ═══════════ */
+.beatit { min-height: 820px; background: var(--cyan); padding: 0 0 40px; }
+[data-theme="dark"] .beatit { background: #0c2a2a; }
+.beatit .bi-bar { display: flex; align-items: center; gap: 16px; padding: 6px 16px 14px; }
+.beatit .bi-bar .bk { width: 40px; height: 40px; display: grid; place-items: center; color: var(--text-primary); cursor: pointer; }
+.beatit .bi-bar .ti { font: 800 20px var(--font); color: var(--text-primary); }
+.beatit .card { background: var(--surface); border-radius: var(--r-lg); margin: 6px 16px 0; padding: 34px 22px 40px; box-shadow: var(--shadow-card); }
+.beatit .h { font: 900 40px var(--font); text-align: center; color: var(--text-primary); letter-spacing: -.5px; }
+.beatit .ex { width: 96px; height: 96px; border-radius: 50%; margin: 26px auto 8px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); }
+.bi-scores { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-top: 22px; }
+.bi-scores .div { width: 2px; background: var(--divider); margin: 8px 6px; border-radius: 2px; }
+.bi-score { flex: 1; max-width: 200px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 18px 14px 16px; text-align: center; }
+.bi-score .lbl { font: 900 17px var(--font); }
+.bi-score.target .lbl { color: var(--primary); }
+.bi-score.best .lbl { color: var(--coral); }
+.bi-score .who { display: inline-flex; align-items: center; gap: 8px; margin: 12px 0 10px; }
+.bi-score .who .av { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-alt) center/cover; }
+.bi-score .who .nm { font: 800 15px var(--font); color: var(--text-primary); }
+.bi-score .val { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.bi-score .val .n { font: 900 48px var(--font); line-height: 1; }
+.bi-score.target .val .n { color: var(--primary); }
+.bi-score.best .val .n { color: var(--coral); }
+.bi-score .val .u { font: 800 20px var(--font); color: var(--text-secondary); }
+.bi-score .tm { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 5px 12px; border-radius: 999px; font: 800 14px var(--font); }
+.bi-score.target .tm { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+.bi-score.best .tm { background: color-mix(in srgb, var(--coral) 14%, transparent); color: var(--coral); }
+.beatit .hint { text-align: center; font: 700 16px var(--font); color: var(--text-secondary); margin-top: 30px; }
+.beatit .start { position: absolute; left: 24px; right: 24px; bottom: 30px; height: 60px; border: none; border-radius: var(--r-md);
+  background: var(--primary); color: var(--on-primary); font: 900 18px var(--font); box-shadow: var(--shadow-btn); cursor: pointer; }
+.beatit .start.disabled { background: var(--grey-300); color: var(--white); box-shadow: none; cursor: not-allowed; }
+[data-theme="dark"] .beatit .start.disabled { background: #33403f; color: var(--text-tertiary); }
+
+/* ═══════════ FULL LEADERBOARD (leaderboard_screen.dart) ═══════════ */
+.lbs { min-height: 820px; background: var(--surface-alt); padding-bottom: 108px; }
+[data-theme="dark"] .lbs { background: var(--bg-canvas); }
+.lbs-bar { display: flex; align-items: center; gap: 12px; padding: 4px 14px 10px; background: var(--surface); }
+.lbs-bar .bk { width: 38px; height: 38px; border-radius: 50%; background: var(--surface-alt); display: grid; place-items: center; color: var(--text-primary); cursor: pointer; }
+.lbs-bar .ti { font: 900 22px var(--font); color: var(--text-primary); }
+.lbs-bar .att { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font: 800 14px var(--font); color: var(--primary); }
+.lbs-bar .att .avs { display: flex; }
+.lbs-bar .att .avs i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--surface); margin-left: -10px; background: var(--surface-alt) center/cover; display: block; }
+.lbs-owner { display: flex; align-items: center; gap: 12px; padding: 6px 16px 14px; background: var(--surface); }
+.lbs-owner .av { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-alt) center/cover; }
+.lbs-owner .nm { font: 900 18px var(--font); color: var(--text-primary); }
+.lbs-owner .exchip { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); font: 900 13px var(--font); letter-spacing: .5px; }
+.lbs-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+.lbs-tabs .t { flex: 1; text-align: center; padding: 13px 0 11px; font: 900 15px var(--font); color: var(--text-tertiary); border-bottom: 2.5px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.lbs-tabs .t.on { color: var(--primary); border-bottom-color: var(--primary); }
+.lbs-body { padding: 16px; }
+
+/* ghost rank banner (not ranked yet) */
+.lb-ghost { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 13px 15px; box-shadow: var(--shadow-card); }
+.lb-ghost .pf { width: 42px; height: 42px; border-radius: 50%; background: var(--surface-alt); display: grid; place-items: center; color: var(--text-tertiary); flex: none; }
+.lb-ghost .tx b { font: 900 12px var(--font); letter-spacing: .4px; color: var(--text-tertiary); }
+.lb-ghost .tx span { display: block; font: 900 15px var(--font); color: var(--text-primary); }
+.lb-ghost .beat { margin-left: auto; background: color-mix(in srgb, var(--primary) 13%, transparent); color: var(--primary);
+  border: none; border-radius: 999px; padding: 9px 16px; font: 900 13px var(--font); cursor: pointer; }
+.lb-ghost .beat.off { background: var(--surface-alt); color: var(--text-tertiary); cursor: not-allowed; }
+
+/* benchmark / reference strip carries a thumbnail */
+.lb-ref .th { width: 40px; height: 40px; border-radius: 10px; background: #22333a center/cover; flex: none; position: relative; display: grid; place-items: center; color: #fff; }
+.lb-ref .th .pi { position: absolute; }
+
+/* podium ghost slots (empty spot) */
+.lb-pod.ghost .pa { border: 2.5px dashed var(--border); background: var(--surface-alt) !important; }
+.lb-pod.ghost .pn { color: var(--text-tertiary); }
+.lb-pod.ghost .bar { background: color-mix(in srgb, var(--border) 35%, transparent); border: 1.5px dashed var(--border); }
+.lb-pod .attpill { font: 800 10px var(--font); color: var(--text-tertiary); margin-top: 2px; }
+
+/* ghost "you" row in Others */
+.lb-row.ghost { border: 1px dashed var(--border); border-radius: 10px; background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.lb-row.ghost .rk { color: var(--text-tertiary); }
+.lb-row.ghost .lb-av { background: var(--surface-alt); display: grid; place-items: center; color: var(--primary); font: 900 11px var(--font); }
+.lb-row.ghost .v { color: var(--primary); }
+
+/* bottom CTA banner */
+.lbs-cta { position: absolute; left: 16px; right: 16px; bottom: 20px; height: 56px; border: none; border-radius: var(--r-pill);
+  background: var(--primary); color: var(--on-primary); font: 900 16px var(--font); box-shadow: var(--shadow-btn); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.lbs-cta.disabled { background: var(--grey-300); color: var(--white); box-shadow: none; cursor: not-allowed; }
+[data-theme="dark"] .lbs-cta.disabled { background: #33403f; color: var(--text-tertiary); }
+
+/* Posts tab (attempts, grouped by date) */
+.lb-date { font: 800 14px var(--font); color: var(--text-secondary); margin: 4px 2px 10px; }
+.lb-att { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 12px; box-shadow: var(--shadow-card); cursor: pointer; }
+.lb-att .th { width: 58px; height: 44px; border-radius: 10px; background: #22333a center/cover; flex: none; display: grid; place-items: center; color: #fff; }
+.lb-att .mid { flex: 1; min-width: 0; }
+.lb-att .mid .n { font: 900 16px var(--font); color: var(--text-primary); }
+.lb-att .mid .d { font: 800 13px var(--font); color: var(--primary); margin-top: 2px; }
+.lb-att .end { display: flex; align-items: center; gap: 8px; }
+.lb-att .end .r { font: 900 17px var(--font); color: var(--text-primary); }
+.lb-att .end .r small { color: var(--text-tertiary); font-weight: 800; }
+.lb-att .end .chev { color: var(--text-tertiary); }
+
+/* ═══════════ VIDEO OPEN STATE (post hero popup) ═══════════ */
+.plb-video { min-height: 820px; background: var(--bg-canvas); position: relative; }
+.plb-video .vbar { padding: 8px 16px; }
+.plb-video .vbar .bk { width: 40px; height: 40px; display: grid; place-items: center; color: var(--text-primary); cursor: pointer; }
+.plb-video .stage { position: absolute; left: 0; right: 0; top: 42%; transform: translateY(-50%);
+  background: linear-gradient(160deg,#0c221c,#0a1512); padding: 26px 20px 34px; color: #fff; }
+.plb-video .vhead { display: flex; align-items: center; gap: 12px; }
+.plb-video .vhead .av { width: 46px; height: 46px; border-radius: 50%; background: var(--surface-alt) center/cover; }
+.plb-video .vhead .nm { font: 900 18px var(--font); }
+.plb-video .vhead .dt { font: 700 13px var(--font); opacity: .7; }
+.plb-video .vhead .tm { margin-left: auto; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px; padding: 7px 14px; font: 800 14px var(--font); }
+.plb-video .ring { width: 96px; height: 96px; border-radius: 50%; margin: 34px auto 0; display: grid; place-items: center;
+  border: 3px solid rgba(52,208,148,.35); }
+.plb-video .ring .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); }
+.plb-video .reppill { width: 190px; margin: 18px auto 0; text-align: center; padding: 16px; border-radius: var(--r-pill);
+  border: 1px solid rgba(52,208,148,.3); }
+.plb-video .reppill .n { font: 900 40px var(--font); }
+.plb-video .reppill .u { font: 800 18px var(--font); opacity: .8; }
+.plb-video .load { text-align: center; font: 700 14px var(--font); opacity: .55; margin-top: 6px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ✨ IDEAS layer — creative alternatives (toggle in prototype).
+   These are opinionated improvements, not Figma-faithful.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* status / urgency chip on a competition */
+.status-chip { display: inline-flex; align-items: center; gap: 5px; font: 900 11px var(--font); letter-spacing: .3px;
+  padding: 4px 9px; border-radius: 999px; }
+.status-chip.live { color: var(--green-deep); background: color-mix(in srgb, var(--green) 20%, transparent); }
+.status-chip.live .d { width: 7px; height: 7px; border-radius: 50%; background: var(--green-strong); box-shadow: 0 0 0 3px color-mix(in srgb,var(--green) 30%, transparent); }
+.status-chip.ended { color: var(--text-tertiary); background: var(--surface-alt); }
+.post .ph .ph-status { margin-left: auto; }
+
+/* ── compact competition strip (replaces the tall inline board) ── */
+.cstrip { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--divider);
+  cursor: pointer; }
+.cstrip .cs-avs { display: flex; flex: none; }
+.cstrip .cs-avs i { width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--surface);
+  margin-left: -12px; background: var(--surface-alt) center/cover; display: grid; place-items: center;
+  position: relative; }
+.cstrip .cs-avs i:first-child { margin-left: 0; }
+.cstrip .cs-avs i .mi { position: absolute; bottom: -4px; right: -4px; font-size: 12px; }
+.cstrip .cs-txt { flex: 1; min-width: 0; }
+.cstrip .cs-txt .t1 { font: 900 14px var(--font); color: var(--text-primary); display: flex; align-items: center; gap: 7px; }
+.cstrip .cs-txt .t1 .tro { font-size: 15px; }
+.cstrip .cs-txt .t2 { font: 800 12.5px var(--font); color: var(--text-secondary); margin-top: 2px; }
+.cstrip .cs-txt .t2 b { color: var(--primary); }
+.cstrip .cs-beat { flex: none; border: none; border-radius: var(--r-pill); background: var(--primary); color: var(--on-primary);
+  font: 900 13.5px var(--font); padding: 11px 16px; display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: var(--shadow-btn); cursor: pointer; }
+.cstrip .cs-you { display: inline-flex; align-items: center; gap: 5px; font: 900 11px var(--font); color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent); padding: 3px 9px; border-radius: 999px; margin-top: 5px; }
+
+/* ── rank-delta chips on leaderboard rows ── */
+.rank-delta { font: 900 10px var(--font); padding: 2px 6px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
+.rank-delta.up { color: var(--green-deep); background: color-mix(in srgb,var(--green) 20%,transparent); }
+.rank-delta.down { color: var(--coral); background: color-mix(in srgb,var(--coral) 16%,transparent); }
+.rank-delta.new { color: var(--primary); background: color-mix(in srgb,var(--primary) 14%,transparent); }
+
+/* ── Beat This Score — motivational ladder (enhanced) ── */
+.bi-lead { margin: 22px 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 16px 18px; box-shadow: var(--shadow-card); }
+.bi-lead .row { display: flex; align-items: center; justify-content: space-between; }
+.bi-lead .row .l { font: 800 13px var(--font); color: var(--text-secondary); }
+.bi-lead .row .r { font: 900 15px var(--font); color: var(--text-primary); }
+.bi-lead .bar { height: 10px; border-radius: 999px; background: var(--surface-alt); margin: 12px 0 8px; overflow: hidden; position: relative; }
+.bi-lead .bar i { display: block; height: 100%; border-radius: 999px; background: var(--hero-grad); }
+.bi-lead .bar .tick { position: absolute; top: -3px; width: 3px; height: 16px; border-radius: 2px; background: var(--coral); }
+.bi-lead .goal { font: 900 14px var(--font); text-align: center; color: var(--primary); }
+.bi-lead .goal b { color: var(--coral); }
+
+/* ═══════════════════════════════════════════════════════════════
+   IMMERSIVE post design (Reels-style) — reuses .fi-* from home-pro.css.
+   The competition becomes a glassy overlay strip on the video, so the
+   feed stays scannable instead of ballooning to full leaderboards.
+   ═══════════════════════════════════════════════════════════════ */
+/* full-bleed: content spans the whole width, no side padding */
+.plb-feed.immersive { padding: 0 0 96px; }
+.plb-feed.immersive .plb-tabs-top { margin: 0 0 8px; }
+.plb-feed.immersive .fi-post { border-radius: 0; margin-bottom: 6px; }
+
+/* taller cards when a competition overlay rides on the video */
+.fi-post.comp { height: 430px; }
+.fi-post.comp.empty { height: 392px; }
+
+/* header subtitle (challenged X · time) */
+.fi-top .fi-n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi-top .fi-n span { font: 800 10.5px var(--font); opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi-top .fi-n span .lk { color: #cffcff; display: inline; }
+
+/* live / ended status pill, top-right overlay */
+.fi-status { position: absolute; top: 14px; right: 12px; z-index: 3; }
+.fi-status .status-chip { backdrop-filter: blur(4px); }
+.fi-status .status-chip.live { color: #eafff5; background: rgba(20,187,76,.55); }
+.fi-status .status-chip.ended { color: #fff; background: rgba(0,0,0,.4); }
+
+/* rep score badge (attempt posts) */
+.fi-repbadge { position: absolute; left: 12px; top: 78px; z-index: 3; display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(0,0,0,.5); color: #fff; border-radius: var(--r-sm); padding: 7px 11px; font: 900 15px var(--font); backdrop-filter: blur(3px); }
+
+/* Beat-it in the side action rail */
+.fi-s.beat { color: var(--cyan); }
+.fi-s.beat .ring { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); display: grid; place-items: center;
+  color: #fff; box-shadow: 0 6px 16px rgba(0,0,0,.35); border: 2px solid rgba(255,255,255,.35); }
+.fi-s.beat b { color: #fff; }
+
+/* raise side rail + caption to clear the competition strip */
+.fi-post.comp .fi-side { bottom: 120px; }
+.fi-post.comp .fi-cap { bottom: 96px; }
+
+/* glassy competition overlay strip pinned to the bottom of the video */
+.fi-comp { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 3; cursor: pointer;
+  background: rgba(12,20,18,.42); border: 1px solid rgba(255,255,255,.16); border-radius: var(--r-md);
+  padding: 11px 13px; backdrop-filter: blur(10px); color: #fff; }
+.fi-comp .fic-top { display: flex; align-items: center; gap: 8px; }
+.fi-comp .fic-top .tr { font-size: 15px; }
+.fi-comp .fic-top .tt { font: 900 13.5px var(--font); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi-comp .fic-top .you { font: 900 10px var(--font); background: rgba(255,255,255,.22); padding: 3px 8px; border-radius: 999px; }
+.fi-comp .fic-top .chev { opacity: .8; }
+.fi-comp .fic-bot { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
+.fi-comp .fic-avs { display: flex; flex: none; }
+.fi-comp .fic-avs i { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,.85);
+  margin-left: -9px; background: var(--surface-alt) center/cover; display: block; position: relative; }
+.fi-comp .fic-avs i:first-child { margin-left: 0; }
+.fi-comp .fic-avs i .m { position: absolute; bottom: -5px; right: -5px; font-size: 11px; }
+.fi-comp .fic-beat { flex: 1; text-align: left; font: 800 12.5px var(--font); opacity: .95; }
+.fi-comp .fic-beat b { font-weight: 900; }
+.fi-comp .fic-cta { flex: none; border: none; border-radius: 999px; background: var(--primary); color: #fff;
+  font: 900 12.5px var(--font); padding: 9px 14px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.fi-comp.empty .fic-beat { opacity: .9; }
