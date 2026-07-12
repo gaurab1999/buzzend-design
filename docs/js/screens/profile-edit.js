@@ -9,7 +9,10 @@ window.ProfileEdit = (function () {
 
   function load() {
     let o = {}; try { o = JSON.parse(localStorage.getItem("buzzend-profile") || "{}"); } catch (e) {}
-    return { name: o.name || ME.name, av: o.av || ME.av };
+    const draft = { name: o.name || ME.name, av: o.av || ME.av };
+    const picked = sessionStorage.getItem("bz-avatar-pick");   // returned from the Capture screen
+    if (picked) { draft.av = picked; sessionStorage.removeItem("bz-avatar-pick"); }
+    return draft;
   }
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
@@ -38,7 +41,7 @@ window.ProfileEdit = (function () {
 
   function on(k, v) { draft[k] = v; if (k === "name") document.getElementById("err-name").textContent = ""; }
   function setAv(a) { draft.av = a; render(); }
-  function pick() { Buzzend.alert({ icon: "camera", title: "Camera or Gallery", message: "In the app you can take a new photo or pick one from your gallery." }); }
+  function pick() { location.href = "capture.html?purpose=avatar"; }
   function remove() { Buzzend.confirm({ icon: "alert", danger: true, title: "Remove profile photo?", message: "Your profile will return to the default photo.", confirmLabel: "Remove", onConfirm() { draft.av = DEFAULT_AV; render(); } }); }
 
   function save() {

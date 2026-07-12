@@ -62,3 +62,30 @@ body {
 }
 
 /* buttons, fields, dialogs now live in css/components/ (imported above) */
+
+/* Create menu (Plus FAB sheet) — AI Workout / Record or Upload */
+.cm-menu { display: flex; flex-direction: column; gap: 9px; }
+.cm-mtitle { font: 900 17px var(--font); color: var(--text-primary); padding: 2px 2px 8px; }
+.cm-opt { display: flex; align-items: center; gap: 14px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; cursor: pointer; text-align: left; }
+.cm-opt:active { transform: scale(.995); }
+.cm-oi { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; flex: none; color: #fff; }
+.cm-oi.ai { background: var(--hero-grad); }
+.cm-oi.rec { background: linear-gradient(135deg, #3a3a5b, #5e60ce); }
+.cm-otx { flex: 1; min-width: 0; }
+.cm-otx b { display: block; font: 900 15px var(--font); color: var(--text-primary); }
+.cm-otx span { font: 700 12px var(--font); color: var(--text-tertiary); }
+.cm-go { color: var(--text-tertiary); flex: none; transform: scaleX(1); }
+
+/* Background "Posting…" bar (survives tab changes; sits at the top of the frame) */
+.ub-banner { position: relative; z-index: 5; margin: 8px 10px 2px; display: flex; align-items: center; gap: 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.12); animation: ubIn .3s ease; }
+.ub-banner.ub-hide { opacity: 0; transform: translateY(-8px); max-height: 0; margin: 0 10px; padding: 0 12px; overflow: hidden; transition: .3s ease; }
+@keyframes ubIn { from { opacity: 0; transform: translateY(-10px); } }
+.ub-cover { width: 40px; height: 40px; border-radius: 10px; flex: none; background-size: cover; background-position: center; display: grid; place-items: center; color: #fff; }
+.ub-body { flex: 1; min-width: 0; }
+.ub-label { font: 800 13.5px var(--font); color: var(--text-primary); }
+.ub-sub { font: 700 11.5px var(--font); color: var(--text-tertiary); margin-top: 2px; }
+.ub-bar { height: 5px; border-radius: 99px; background: var(--surface-alt); margin-top: 7px; overflow: hidden; }
+.ub-bar > i { display: block; height: 100%; background: var(--primary); border-radius: 99px; width: 0; transition: width .18s linear; }
+.ub-pct { font: 900 13px var(--font); color: var(--primary); flex: none; }
+.ub-banner.is-done .ub-bar { display: none; }

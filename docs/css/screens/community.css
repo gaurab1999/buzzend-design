@@ -112,3 +112,101 @@
 .cf-tile .ov { position:absolute; left:7px; bottom:6px; z-index:2; display:inline-flex; align-items:center; gap:4px; color:#fff; font:800 11px var(--font); text-shadow:0 1px 4px rgba(0,0,0,.6); }
 .cf-tile .pl { position:absolute; top:7px; right:7px; z-index:2; color:#fff; opacity:.92; }
 .cf-tile .tg { position:absolute; top:7px; left:7px; z-index:2; color:#fff; opacity:.92; }
+
+/* ── Cards view — same post design as the Challenge Detail posts section.
+   Header + actions inset; media bleeds edge-to-edge. Used in Community (Cards
+   view) and Home V7's community section. ── */
+.cf-cards { background: var(--bg-canvas); }
+.cf-card { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.cf-card-h { display: flex; align-items: center; gap: 10px; padding: 0 18px; }
+.cf-card-h .av { width: 38px; height: 38px; border-radius: 50%; flex: none; background-size: cover; background-position: center; cursor: pointer; }
+.cf-card-h .who { flex: 1; min-width: 0; cursor: pointer; }
+.cf-card-h .nm b { font: 800 13.5px var(--font); color: var(--text-primary); }
+.cf-card-h .t { font: 700 11.5px var(--font); color: var(--text-tertiary); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cf-card-h .mm { margin-left: auto; flex: none; width: 34px; height: 34px; border: none; background: none; color: var(--text-tertiary); display: grid; place-items: center; cursor: pointer; }
+.cf-card-media { margin: 11px 0; aspect-ratio: 16/10; position: relative; display: grid; place-items: center; color: #fff; overflow: hidden; cursor: pointer; }
+.cf-card-media .cap { font: 900 21px var(--font); text-align: center; padding: 0 26px; text-shadow: 0 2px 12px rgba(0,0,0,.5); line-height: 1.3; }
+.cf-card-media .play { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,.4); display: grid; place-items: center; backdrop-filter: blur(3px); }
+.cf-cbadge { position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,.45); color: #fff; font: 800 11px var(--font); padding: 5px 10px; border-radius: 99px; backdrop-filter: blur(4px); }
+.cf-cbadge .z { display: inline-flex; color: #ffd66b; }
+.cf-cchip { position: absolute; left: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,.45); color: #fff; font: 800 11px var(--font); padding: 5px 10px; border-radius: 99px; backdrop-filter: blur(4px); }
+/* multi-asset: caption text + Facebook-style grid */
+.cf-card-cap { padding: 2px 18px 0; font: 700 14px var(--font); color: var(--text-primary); line-height: 1.45; }
+.cf-gridmedia { position: relative; display: grid; gap: 2px; aspect-ratio: 16/11; overflow: hidden; margin: 11px 0; cursor: pointer; }
+.cf-gridmedia.n2 { grid-template-columns: 1fr 1fr; }
+.cf-gridmedia.n3 { grid-template-columns: 1.7fr 1fr; grid-template-rows: 1fr 1fr; }
+.cf-gridmedia.n3 .cf-gt:first-child { grid-row: 1 / 3; }
+.cf-gridmedia.n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.cf-gridmedia.n5 { grid-template-columns: repeat(6, 1fr); grid-template-rows: 1fr 1fr; }
+.cf-gridmedia.n5 .cf-gt:nth-child(1), .cf-gridmedia.n5 .cf-gt:nth-child(2) { grid-column: span 3; }
+.cf-gridmedia.n5 .cf-gt:nth-child(3), .cf-gridmedia.n5 .cf-gt:nth-child(4), .cf-gridmedia.n5 .cf-gt:nth-child(5) { grid-column: span 2; }
+.cf-gt { position: relative; background-size: cover; background-position: center; min-height: 0; }
+.cf-gplay { position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,.42); color: #fff; display: grid; place-items: center; backdrop-filter: blur(3px); }
+.cf-more { position: absolute; inset: 0; background: rgba(0,0,0,.52); color: #fff; display: grid; place-items: center; font: 900 27px var(--font); }
+.cf-card-a { display: flex; align-items: center; gap: 20px; padding: 2px 18px 0; font: 800 13px var(--font); color: var(--text-secondary); }
+.cf-card-a span { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.cf-card-a .cf-a { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.cf-card-a .cf-a .ib { display: inline-flex; }
+.cf-card-a .cf-a .ib.liked { color: #e5524a; }
+.cf-card-a .cf-a b { cursor: pointer; }
+.cf-rail .ct, .cf-vrail .ct { cursor: pointer; }
+
+/* Liked by / Viewed by sheet */
+.cf-phead { display: flex; align-items: center; gap: 8px; font: 900 16px var(--font); color: var(--text-primary); padding: 2px 2px 14px; }
+.cf-phead span { flex: 1; } .cf-phead b { color: var(--text-tertiary); font-weight: 800; }
+.cf-people { display: flex; flex-direction: column; max-height: 52vh; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.cf-people::-webkit-scrollbar { width: 0; height: 0; display: none; }
+.cf-prow { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.cf-prow .av { width: 46px; height: 46px; border-radius: 50%; background-size: cover; background-position: center; flex: none; }
+.cf-prow .nm { flex: 1; min-width: 0; font: 800 14px var(--font); color: var(--text-primary); }
+.cf-prow .nm span { display: block; font: 700 12px var(--font); color: var(--text-tertiary); margin-top: 1px; }
+.cf-pfollow { flex: none; border: 1px solid var(--primary); background: var(--primary); color: var(--on-primary); font: 800 12.5px var(--font); padding: 8px 18px; border-radius: 99px; cursor: pointer; }
+.cf-pfollow.on { background: var(--surface-alt); color: var(--text-primary); border-color: var(--border); }
+.cf-pmenu { display: flex; flex-direction: column; gap: 4px; }
+.cf-pm { display: flex; align-items: center; gap: 13px; width: 100%; background: none; border: none; padding: 14px 6px; font: 800 15px var(--font); color: var(--text-primary); cursor: pointer; border-radius: 12px; text-align: left; }
+.cf-pm:hover { background: var(--surface-alt); }
+.cf-pm.danger { color: #ef4444; }
+
+/* ═══════ bug-fix pass ═══════ */
+/* P4 — filled heart when liked */
+.like { display: inline-flex; cursor: pointer; }
+.like.liked svg { fill: #e5524a; stroke: #e5524a; }
+.cf-rail button.liked .ib svg, .cf-vrail button.liked .ib svg { fill: #fff; stroke: #fff; }
+.cf-card-a .cf-a b, .cf-card-a .cf-a .like { cursor: pointer; }
+.cf-sactions .cf-a { display: inline-flex; align-items: center; gap: 7px; font: 800 14px var(--font); color: var(--text-secondary); }
+.cf-sactions .cf-a .like svg { vertical-align: middle; }
+
+/* P8 — challenge name highlighted + clickable */
+.cf-chlink { cursor: pointer; }
+.cf-card-h .t .cf-chlink { color: var(--primary); font-weight: 800; }
+.cf-card-h .t .cf-chlink svg { vertical-align: -2px; }
+
+/* P3 — story three-dot */
+.cf-smm { flex: none; width: 34px; height: 34px; border: none; background: none; color: var(--text-tertiary); display: grid; place-items: center; cursor: pointer; }
+
+/* P2 — report sheet */
+.cf-report { display: flex; flex-direction: column; }
+.cf-rp { display: flex; align-items: center; gap: 12px; padding: 14px 4px; border-bottom: 1px solid var(--divider); font: 700 14px var(--font); color: var(--text-primary); cursor: pointer; }
+.cf-rp input { width: 18px; height: 18px; accent-color: var(--primary); }
+.cf-submit { width: 100%; margin-top: 14px; height: 48px; border: none; border-radius: 13px; background: var(--primary); color: var(--on-primary); font: 900 14.5px var(--font); cursor: pointer; }
+
+/* P6 — smoother scroll: drop expensive blur on feed cards, isolate paint */
+.cf-card-media .play, .cf-cbadge, .cf-cchip, .cf-gplay { backdrop-filter: none; }
+.cf-card { content-visibility: auto; contain-intrinsic-size: auto 440px; }
+
+/* P11 — viewer progress: image segments (top) + video scrubber (bottom, on pause) */
+.cf-vprog { position: absolute; top: 46px; left: 10px; right: 10px; z-index: 7; display: flex; gap: 4px; transition: opacity .2s; }
+.cf-seg { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,.3); overflow: hidden; }
+.cf-seg .fill { display: block; height: 100%; width: 0; background: #fff; border-radius: 3px; }
+.cf-vpost.is-video .cf-vprog { display: none; }
+.cf-vscrub { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; z-index: 7; background: rgba(255,255,255,.16); opacity: 0; transition: opacity .2s; }
+.cf-vscrub .fill { display: block; height: 100%; width: 0; background: #fff; }
+.cf-vpost.is-video.paused .cf-vscrub { opacity: 1; height: 5px; }
+.cf-vdots { display: none; }
+.cf-vpp { position: absolute; inset: 0; margin: auto; width: 74px; height: 74px; z-index: 6; display: grid; place-items: center; color: #fff; background: rgba(0,0,0,.34); border-radius: 50%; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.cf-vpost.is-video.paused .cf-vpp { opacity: 1; }
+
+/* P10 — long-press peek: hide all chrome, keep the media */
+.cf-vpost.peek .cf-vrail, .cf-vpost.peek .cf-vbottom, .cf-vpost.peek .cf-vtag,
+.cf-vpost.peek .cf-vprog, .cf-vpost.peek .cf-vscrub, .cf-vpost.peek .cf-vscrim, .cf-vpost.peek .cf-vpp { opacity: 0 !important; pointer-events: none; }
+.cf-viewer.peeking .cf-vback { opacity: 0; pointer-events: none; }

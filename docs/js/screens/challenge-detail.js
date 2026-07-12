@@ -24,7 +24,7 @@ window.CDetail = (function () {
   function board() { return S.challengeBoard(C); }
   const meEntry = () => board().find((b) => b.p.me);
 
-  let cur = { v: 1, tab: "leaderboard", role: "viewer", sub: null }, _ov = null, _reason = null;
+  let cur = { v: 1, tab: "members", role: "viewer", sub: null }, _ov = null, _reason = null;
 
   // ── rings ──
   function ring(pct, size, track, prog, center) {
@@ -66,17 +66,20 @@ window.CDetail = (function () {
   }
   function postsView() {
     if (!POSTS.length) return `<div class="cd-empty">${I("play", 34)}<div class="t">No posts yet</div><div class="d">Be the first to share a clip from this challenge.</div></div>`;
-    return POSTS.map((p) => { const pe = S.PEOPLE[p.pi];
+    return POSTS.map((p, pIdx) => { const pe = S.PEOPLE[p.pi];
       return `<div class="cd-post"><div class="cd-post-h"><div class="av" style="background-image:${grad(pe.av)}"></div>
         <div style="flex:1;min-width:0"><div class="nm"><b>${pe.name}</b> · ${exName()}</div><div class="t">${p.t}<span class="cd-badge ${C.status}">${statusLabel()}</span></div></div>
         <span class="mm" onclick="CDetail.postMenu()">⋯</span></div>
         <div class="cd-post-media" style="background:${p.g}"><div class="cap">${p.cap}</div><span class="play">${I("play", 16)}</span></div>
-        <div class="cd-post-a"><span class="${p.liked ? "liked" : ""}">${I("heart", 17)} ${p.likes}</span><span>${I("eye", 17)} ${fmt(p.views)}</span><span>${I("share", 17)} Share</span></div></div>`; }).join("");
+        <div class="cd-post-a">
+          <span class="cd-a"><span class="ib${p.liked ? " liked" : ""}" onclick="this.classList.toggle('liked')">${I("heart", 17)}</span><b onclick="CDetail.likers(${pIdx})">${p.likes}</b></span>
+          <span class="cd-a" onclick="CDetail.viewers(${pIdx})">${I("eye", 17)} ${fmt(p.views)}</span>
+          <span class="cd-a" onclick="CDetail.postMenu()">${I("share", 17)} Share</span></div></div>`; }).join("");
   }
   function subview(t) { return t === "members" ? membersView() : t === "posts" ? postsView() : leaderboardView(); }
   function tabbar() {
     const tab = (id, label) => `<div class="cd-tab ${cur.tab === id ? "on" : ""}" onclick="CDetail.setTab('${id}')">${label}</div>`;
-    return `<div class="cd-tabs">${tab("leaderboard", "Leaderboard") + tab("members", fmt(C.members) + " Members") + tab("posts", "Posts")}</div>`;
+    return `<div class="cd-tabs">${tab("members", fmt(C.members) + " Members") + tab("posts", "Posts")}</div>`;
   }
 
   // ── CTA (role + status aware) ──
@@ -199,6 +202,16 @@ window.CDetail = (function () {
     mountSheet(`<div class="cd-sheet"><div class="cd-grab"></div>${items}<button class="cd-mi cancel" onclick="CDetail.close()">Cancel</button></div>`);
   }
   function postMenu() { mountSheet(`<div class="cd-sheet"><div class="cd-grab"></div><button class="cd-mi" onclick="CDetail.close()"><span class="mic">${I("share", 18)}</span> Share post</button><button class="cd-mi danger" onclick="CDetail.report()"><span class="mic">${I("flag", 18)}</span> Report post</button><button class="cd-mi cancel" onclick="CDetail.close()">Cancel</button></div>`); }
+  // Liked by / Viewed by — people sheet
+  function peopleList(seed, n) { const pool = S.PEOPLE.slice(1); n = Math.min(n, pool.length); const out = []; for (let k = 0; k < n; k++) out.push(pool[(seed + k) % pool.length]); return out; }
+  function openPeople(title, ic, total, seed) {
+    const rows = peopleList(seed, Math.min(9, total)).map((p) => `<div class="cd-prow"><div class="av" style="background-image:${grad(p.av)}"></div>
+      <div class="nm"><b>${p.name}</b><span>${p.friend ? "Following" : "@" + p.name.split(" ")[0].toLowerCase()}</span></div>
+      ${p.friend ? `<button class="cd-pfollow on">Following</button>` : `<button class="cd-pfollow" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'Following':'Follow'">Follow</button>`}</div>`).join("");
+    mountSheet(`<div class="cd-sheet"><div class="cd-grab"></div><div class="cd-phead">${I(ic, 18)}<span>${title}</span><b>${fmt(total)}</b></div><div class="cd-people">${rows}</div></div>`);
+  }
+  function likers(i) { openPeople("Liked by", "heart", POSTS[i].likes, i + 1); }
+  function viewers(i) { openPeople("Viewed by", "eye", POSTS[i].views, i + 4); }
   function act(a) { close(); const msg = { edit: ["edit", "Edit challenge", "Opens the create wizard pre-filled with this challenge."], cover: ["image", "Change cover", "Pick a new cover image for this challenge."], invite: ["share", "Invite code: SQ7X2A", "Share this code or link so friends can join instantly."] }[a]; Buzzend.alert({ icon: msg[0], title: msg[1], message: msg[2] }); }
 
   // report
@@ -227,8 +240,8 @@ window.CDetail = (function () {
   }
 
   function start(mountEl, v, role, tab) {
-    root = mountEl; cur.v = +v || 1; cur.role = role || "viewer"; cur.tab = tab || "leaderboard"; cur.sub = null;
+    root = mountEl; cur.v = +v || 1; cur.role = role || "viewer"; cur.tab = tab || "members"; cur.sub = null;
     render();
   }
-  return { start, render, setTab, drill, back, join, record, menu, postMenu, act, report, pickReason, submitReport, renderReport, confirmLeave, doLeave, confirmDelete, doDelete, chat, close };
+  return { start, render, setTab, drill, back, join, record, menu, postMenu, likers, viewers, act, report, pickReason, submitReport, renderReport, confirmLeave, doLeave, confirmDelete, doDelete, chat, close };
 })();

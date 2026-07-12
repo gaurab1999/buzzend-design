@@ -137,7 +137,7 @@ window.AIFlow = (function () {
     if (forceState === "noframe") { locked = false; status("partial", "STEP INTO FRAME", "I can't see you — step into view"); }
     countEl.addEventListener("click", () => { if (S.reps <= 0) return; S.reps--; countEl.textContent = S.reps; toast.textContent = "−1 · corrected"; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1100); });
     root.querySelector("#pause").addEventListener("click", function () { paused = !paused; this.classList.toggle("on", paused); this.innerHTML = paused ? `${I("play", 18)} Resume` : `${I("clock", 18)} Pause`; });
-    root.querySelector("#finish").addEventListener("click", () => go("summary"));
+    root.querySelector("#finish").addEventListener("click", () => { if (S.reps > 0) location.href = "../home/compose.html?from=workout&ex=" + S.exKey + "&reps=" + S.reps; else go("summary"); });
     root.querySelector("#quit").addEventListener("click", () => { paused = true; quitOverlay(cm, () => { paused = false; }); });
   }
   function quitOverlay(cm, onKeep) {
@@ -158,16 +158,8 @@ window.AIFlow = (function () {
         <div class="fl-f-foot"><button class="fl-btn-primary" id="retry">Try again</button><button class="fl-btn-ghost" onclick="location.href='index.html'">Exit</button></div></div>`;
       root.querySelector("#retry").addEventListener("click", () => go("getready")); return;
     }
-    root.innerHTML = `<div class="fl fl-finish">
-      <div class="fl-burst">${I("zap", 40)}</div><div class="fl-f-head">You crushed it!</div>
-      <div class="fl-f-big">${S.reps}</div><div class="fl-f-sub">${e.n.toLowerCase()}</div>
-      <div class="fl-f-stats"><div class="fl-f-st glass"><b>${mmss(S.secs)}</b><span>duration</span></div>
-        <div class="fl-f-st glass"><b>${(S.reps * 0.4).toFixed(1)}</b><span>kcal</span></div>
-        <div class="fl-f-st glass"><b>+${Math.round(S.reps * 2.6)}</b><span>points</span></div></div>
-      <div class="fl-f-foot"><button class="fl-btn-primary" id="share">${I("share", 18)} Share clip</button>
-        <button class="fl-btn-ghost" onclick="location.href='index.html'">Save &amp; done</button></div></div>`;
-    say(S.reps + " " + e.n.toLowerCase());
-    root.querySelector("#share").addEventListener("click", () => go("review"));
+    // "You crushed it!" screen removed — go straight to the composer to edit / post the recorded set
+    location.href = "../home/compose.html?from=workout&ex=" + S.exKey + "&reps=" + S.reps;
   }
 
   function rReview() {

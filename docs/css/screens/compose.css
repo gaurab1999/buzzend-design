@@ -1,0 +1,116 @@
+/* Content composer — Pick → Edit (PreviewScreen + canvas editor) → Post.
+   Full-height immersive flow. Token / palette / dark aware. */
+#cp-content { height: 820px; position: relative; overflow: hidden; }
+.cp-pick, .cp-edit, .cp-post { height: 100%; display: flex; flex-direction: column; }
+.cp-pick, .cp-post { background: var(--bg-canvas); }
+.cp-edit { background: #0b0b0d; }
+
+/* top bar */
+.cp-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 12px; flex: none; }
+.cp-top.dark { color: #fff; }
+.cp-x { width: 40px; height: 40px; border-radius: 50%; border: none; background: none; display: grid; place-items: center; color: inherit; cursor: pointer; }
+.cp-top:not(.dark) .cp-x { color: var(--text-primary); }
+.cp-ttl { font: 900 17px var(--font); }
+.cp-next { border: none; background: var(--primary); color: var(--on-primary); font: 900 14px var(--font); padding: 9px 18px; border-radius: 99px; cursor: pointer; box-shadow: var(--shadow-btn); }
+.cp-next.dis { opacity: .4; pointer-events: none; }
+
+/* ── PICK ── */
+.cp-ftabs { display: flex; gap: 4px; background: var(--surface-alt); border-radius: var(--r-pill); padding: 4px; margin: 0 16px 10px; }
+.cp-ftab { flex: 1; border: none; background: none; padding: 8px 0; border-radius: var(--r-pill); font: 800 13px var(--font); color: var(--text-secondary); cursor: pointer; }
+.cp-ftab.on { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-card); }
+.cp-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 0 3px 3px; align-content: start; }
+.cp-tile { position: relative; aspect-ratio: 1; border: none; border-radius: 3px; background-size: cover; background-position: center; cursor: pointer; overflow: hidden; }
+.cp-tile.cam { background: var(--surface-alt); color: var(--text-secondary); display: grid; place-items: center; }
+.cp-tile.cam span { display: flex; flex-direction: column; align-items: center; gap: 6px; font: 800 11px var(--font); }
+.cp-tile.on { outline: 3px solid var(--primary); outline-offset: -3px; }
+.cp-tile.off { opacity: .32; pointer-events: none; }
+.cp-vbadge { position: absolute; left: 5px; bottom: 5px; display: inline-flex; align-items: center; gap: 3px; background: rgba(0,0,0,.5); color: #fff; font: 800 9.5px var(--font); padding: 2px 6px; border-radius: 99px; }
+.cp-selbadge { position: absolute; top: 5px; right: 5px; width: 21px; height: 21px; border-radius: 50%; border: 2px solid #fff; display: grid; place-items: center; font: 900 11px var(--font); color: #fff; }
+.cp-tile.on .cp-selbadge { background: var(--primary); border-color: #fff; }
+.cp-pickbar { flex: none; padding: 13px 18px; border-top: 1px solid var(--border); }
+.cp-rule { display: inline-flex; align-items: center; gap: 7px; font: 700 12.5px var(--font); color: var(--text-secondary); }
+
+/* ── EDIT: stage ── */
+.cp-stage { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+.cp-canvas { width: 100%; aspect-ratio: 4/5; max-height: 100%; position: relative; background-size: cover; background-position: center; }
+.cp-play { position: absolute; inset: 0; margin: auto; width: 66px; height: 66px; border-radius: 50%; border: none; background: rgba(0,0,0,.42); color: #fff; display: grid; place-items: center; backdrop-filter: blur(4px); cursor: pointer; }
+.cp-vinfo { position: absolute; left: 12px; bottom: 12px; display: flex; align-items: center; gap: 8px; color: #fff; background: rgba(0,0,0,.4); padding: 5px 10px; border-radius: 99px; font: 800 11px var(--font); backdrop-filter: blur(4px); }
+.cp-spd { background: rgba(255,255,255,.22); padding: 1px 6px; border-radius: 99px; }
+.cp-reps { position: absolute; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.5); color: #fff; font: 800 11.5px var(--font); padding: 6px 11px; border-radius: 99px; backdrop-filter: blur(4px); }
+.cp-ov { position: absolute; transform: translate(-50%,-50%); cursor: grab; touch-action: none; user-select: none; }
+.cp-ov.txt { color: #fff; font: 900 22px var(--font); text-shadow: 0 2px 8px rgba(0,0,0,.6); padding: 4px 8px; }
+.cp-ov.emo { font-size: 42px; }
+.cp-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,.35); color: #fff; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(4px); }
+.cp-nav.l { left: 8px; } .cp-nav.r { right: 8px; } .cp-nav.r svg { transform: scaleX(-1); }
+.cp-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
+.cp-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.4); }
+.cp-dots i.on { background: #fff; width: 18px; border-radius: 3px; }
+
+/* ── EDIT: thumbnail strip ── */
+.cp-strip { flex: none; display: flex; gap: 8px; padding: 12px 14px; overflow-x: auto; background: #0b0b0d; }
+.cp-th { position: relative; flex: none; width: 56px; height: 70px; border-radius: 10px; background-size: cover; background-position: center; border: 2px solid transparent; cursor: pointer; }
+.cp-th.on { border-color: var(--primary); }
+.cp-th.dragging { opacity: .4; } .cp-th.over { border-color: #fff; }
+.cp-thv { position: absolute; left: 4px; bottom: 4px; color: #fff; background: rgba(0,0,0,.5); border-radius: 50%; width: 16px; height: 16px; display: grid; place-items: center; }
+.cp-thx { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #0b0b0d; background: #ef4444; color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.cp-cover { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font: 800 8px var(--font); color: #fff; background: rgba(0,0,0,.55); padding: 2px 0; }
+.cp-thadd { flex: none; width: 56px; height: 70px; border-radius: 10px; border: 1.5px dashed rgba(255,255,255,.35); background: rgba(255,255,255,.05); color: rgba(255,255,255,.7); display: grid; place-items: center; cursor: pointer; }
+.cp-editbar { flex: none; padding: 6px 14px 18px; }
+.cp-editbtn { width: 100%; height: 48px; border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.08); color: #fff; font: 800 14px var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+
+/* ── EDIT: canvas editor ── */
+.cp-editor { flex: none; background: #0b0b0d; color: #fff; }
+.cp-etop { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid rgba(255,255,255,.1); }
+.cp-eic { width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(255,255,255,.08); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.cp-etitle { font: 900 14px var(--font); }
+.cp-edone { border: none; background: var(--primary); color: var(--on-primary); font: 900 13px var(--font); padding: 8px 16px; border-radius: 99px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.cp-toolrail { display: flex; gap: 6px; overflow-x: auto; padding: 12px 14px 20px; }
+.cp-tool { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 62px; background: none; border: none; color: rgba(255,255,255,.9); font: 700 10.5px var(--font); cursor: pointer; }
+.cp-tool span { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.09); display: grid; place-items: center; }
+.cp-panel { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,.1); }
+.cp-panelh { font: 800 12px var(--font); color: rgba(255,255,255,.7); margin-bottom: 12px; }
+.cp-trimtrack { position: relative; display: flex; gap: 2px; height: 48px; border-radius: 8px; overflow: hidden; }
+.cp-frame { flex: 1; background-size: cover; background-position: center; opacity: .6; }
+.cp-trimsel { position: absolute; top: 0; bottom: 0; border: 3px solid var(--primary); border-radius: 8px; background: rgba(255,255,255,.06); }
+.cp-h { position: absolute; top: 50%; transform: translateY(-50%); width: 8px; height: 26px; border-radius: 4px; background: var(--primary); }
+.cp-h.l { left: -6px; } .cp-h.r { right: -6px; }
+.cp-trimlab { display: flex; justify-content: space-between; font: 800 11px var(--font); color: #fff; margin-top: 8px; }
+.cp-chips, .cp-emos, .cp-bgs { display: flex; gap: 9px; flex-wrap: wrap; }
+.cp-chip { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; font: 800 13px var(--font); padding: 9px 15px; border-radius: 99px; cursor: pointer; }
+.cp-chip.on { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.cp-tracks { display: flex; flex-direction: column; gap: 6px; }
+.cp-track { display: flex; align-items: center; gap: 9px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.05); color: #fff; font: 700 13px var(--font); padding: 12px 13px; border-radius: 12px; cursor: pointer; text-align: left; }
+.cp-track.on { border-color: var(--primary); }
+.cp-emo { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,.08); border: none; font-size: 24px; cursor: pointer; }
+.cp-bg { width: 52px; height: 52px; border-radius: 12px; border: 2px solid rgba(255,255,255,.2); background-size: cover; cursor: pointer; }
+
+/* ── POST ── */
+.cp-postbody { flex: 1; overflow-y: auto; padding: 6px 18px 20px; }
+.cp-summary { display: flex; align-items: center; gap: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px; box-shadow: var(--shadow-card); margin-bottom: 14px; }
+.cp-sthumb { position: relative; width: 54px; height: 54px; border-radius: 11px; background-size: cover; flex: none; }
+.cp-sthumb .cp-thv { width: 18px; height: 18px; }
+.cp-sn { font: 900 14.5px var(--font); color: var(--text-primary); }
+.cp-sd { font: 700 12px var(--font); color: var(--text-tertiary); margin-top: 2px; }
+.cp-repnote, .cp-none { display: flex; align-items: center; gap: 8px; font: 700 12.5px var(--font); color: var(--text-secondary); background: color-mix(in srgb,var(--primary) 8%,transparent); border-radius: 12px; padding: 11px 13px; margin-bottom: 16px; }
+.cp-none { color: var(--text-tertiary); background: var(--surface-alt); }
+.cp-qh { font: 900 16px var(--font); color: var(--text-primary); margin: 4px 2px 12px; }
+.cp-dest { display: flex; align-items: center; gap: 13px; width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 15px; padding: 12px 13px; margin-bottom: 10px; cursor: pointer; text-align: left; }
+.cp-dest.on { border-color: var(--primary); background: color-mix(in srgb,var(--primary) 6%,transparent); }
+.cp-di { width: 42px; height: 42px; border-radius: 12px; background-size: cover; flex: none; display: grid; place-items: center; color: #fff; }
+.cp-dm { flex: 1; min-width: 0; }
+.cp-dn { font: 900 14px var(--font); color: var(--text-primary); }
+.cp-dd { display: flex; align-items: center; gap: 5px; font: 700 11.5px var(--font); color: var(--text-tertiary); margin-top: 2px; }
+.cp-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; color: var(--on-primary); flex: none; }
+.cp-dest.on .cp-check { background: var(--primary); border-color: var(--primary); }
+.cp-sublbl { font: 800 12px var(--font); letter-spacing: .4px; text-transform: uppercase; color: var(--text-tertiary); margin: 18px 2px 12px; }
+.cp-postbar { flex: none; padding: 12px 18px 20px; border-top: 1px solid var(--border); }
+.cp-postbtn { width: 100%; height: 52px; border-radius: 16px; border: none; background: var(--primary); color: var(--on-primary); font: 900 15px var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; box-shadow: var(--shadow-btn); }
+
+/* ── upload overlay ── */
+.cp-uploading { position: absolute; inset: 0; background: color-mix(in srgb,var(--bg-canvas) 82%,transparent); backdrop-filter: blur(6px); display: grid; place-items: center; z-index: 50; }
+.cp-upcard { text-align: center; padding: 30px; }
+.cp-upring { position: relative; width: 76px; height: 76px; margin: 0 auto 16px; }
+.cp-uppct { position: absolute; inset: 0; display: grid; place-items: center; font: 900 17px var(--font); color: var(--text-primary); }
+.cp-updone { width: 76px; height: 76px; border-radius: 50%; margin: 0 auto 16px; background: color-mix(in srgb,var(--primary) 15%,transparent); color: var(--primary); display: grid; place-items: center; }
+.cp-uptx { font: 900 18px var(--font); color: var(--text-primary); }
+.cp-upsub { font: 600 13px var(--font); color: var(--text-secondary); margin-top: 6px; max-width: 240px; }

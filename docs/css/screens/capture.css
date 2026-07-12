@@ -1,0 +1,61 @@
+/* Capture — reusable camera + gallery. Camera is immersive dark; gallery follows
+   the theme. */
+#cap-content { height: 820px; position: relative; overflow: hidden; }
+.cap { height: 100%; display: flex; flex-direction: column; }
+
+/* ── camera ── */
+.cap-camera { background: #000; position: relative; }
+.cap-view { position: absolute; inset: 0; overflow: hidden; }
+.cap-vf { position: absolute; inset: 0; background:
+  radial-gradient(120% 80% at 50% 20%, #3a4a5e, #10151c 70%),
+  radial-gradient(circle at 30% 70%, rgba(120,150,190,.25), transparent 45%); }
+.cap-camera.facing-front .cap-vf { background:
+  radial-gradient(120% 80% at 50% 30%, #4a4258, #14121a 70%),
+  radial-gradient(circle at 70% 60%, rgba(190,150,190,.22), transparent 45%); }
+.cap-reticle { position: absolute; top: 42%; left: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; border: 1.5px solid rgba(255,255,255,.5); border-radius: 12px; opacity: .55; }
+.cap-rec { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); z-index: 4; display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,.4); color: #fff; font: 900 13px var(--font); padding: 6px 13px; border-radius: 99px; }
+.cap-rec .dot { width: 9px; height: 9px; border-radius: 50%; background: #ef4444; animation: capblink 1s steps(2) infinite; }
+@keyframes capblink { 50% { opacity: .3; } }
+
+.cap-top { position: relative; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: 18px 16px 0; }
+.cap-x { width: 42px; height: 42px; border-radius: 50%; border: none; background: rgba(0,0,0,.32); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.cap-title { color: #fff; font: 900 15px var(--font); }
+.cap-title.dark { color: var(--text-primary); }
+.cap-tgs { display: flex; gap: 8px; }
+.cap-tg { position: relative; width: 42px; height: 42px; border-radius: 50%; border: none; background: rgba(0,0,0,.32); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.cap-tg.off { opacity: .5; }
+.cap-tglbl { position: absolute; bottom: -3px; right: -2px; font: 900 8px var(--font); background: #fff; color: #000; padding: 1px 4px; border-radius: 99px; text-transform: uppercase; font-style: normal; }
+
+.cap-bottom { position: relative; z-index: 5; margin-top: auto; padding: 0 0 26px; }
+.cap-modes { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+.cap-mode { border: none; background: none; color: rgba(255,255,255,.6); font: 800 13px var(--font); padding: 6px 16px; border-radius: 99px; cursor: pointer; }
+.cap-mode.on { color: #ffd66b; background: rgba(255,255,255,.12); }
+.cap-controls { display: flex; align-items: center; justify-content: space-between; padding: 0 34px; }
+.cap-gal { width: 46px; height: 46px; border-radius: 12px; border: 2px solid rgba(255,255,255,.7); background: rgba(255,255,255,.12); color: #fff; display: grid; place-items: center; cursor: pointer; background-position: center; }
+.cap-shutter { width: 74px; height: 74px; border-radius: 50%; border: 5px solid #fff; background: #fff; cursor: pointer; box-shadow: 0 0 0 4px rgba(255,255,255,.25); }
+.cap-shutter.video { background: #ef4444; border-color: #fff; }
+.cap-shutter.rec { border-radius: 18px; width: 56px; height: 56px; }
+.cap-flip { width: 46px; height: 46px; border-radius: 50%; border: none; background: rgba(255,255,255,.16); color: #fff; display: grid; place-items: center; cursor: pointer; }
+
+/* selected tray */
+.cap-tray { display: flex; align-items: center; gap: 12px; padding: 0 16px 18px; }
+.cap-tt-row { flex: 1; display: flex; gap: 8px; overflow-x: auto; }
+.cap-tt { position: relative; flex: none; width: 50px; height: 62px; border-radius: 9px; background-size: cover; background-position: center; }
+.cap-ttv { position: absolute; left: 3px; bottom: 3px; color: #fff; background: rgba(0,0,0,.5); border-radius: 50%; width: 15px; height: 15px; display: grid; place-items: center; }
+.cap-ttx { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #000; background: #ef4444; color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.cap-next { flex: none; border: none; background: var(--primary); color: var(--on-primary); font: 900 14px var(--font); padding: 12px 20px; border-radius: 99px; cursor: pointer; }
+
+/* ── gallery ── */
+.cap-gallery { background: var(--bg-canvas); }
+.cap-gtop { display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 12px; flex: none; }
+.cap-gtop .cap-x { background: none; color: var(--text-primary); }
+.cap-gnext { border: none; background: var(--primary); color: var(--on-primary); font: 900 14px var(--font); padding: 9px 18px; border-radius: 99px; cursor: pointer; }
+.cap-gnext.dis { opacity: .4; pointer-events: none; }
+.cap-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 0 3px; align-content: start; }
+.cap-tile { position: relative; aspect-ratio: 1; border: none; border-radius: 3px; background-size: cover; background-position: center; cursor: pointer; overflow: hidden; }
+.cap-tile.on { outline: 3px solid var(--primary); outline-offset: -3px; }
+.cap-tile.off { opacity: .32; pointer-events: none; }
+.cap-vb { position: absolute; left: 5px; bottom: 5px; display: inline-flex; align-items: center; gap: 3px; background: rgba(0,0,0,.5); color: #fff; font: 800 9.5px var(--font); padding: 2px 6px; border-radius: 99px; }
+.cap-selb { position: absolute; top: 5px; right: 5px; width: 21px; height: 21px; border-radius: 50%; border: 2px solid #fff; display: grid; place-items: center; font: 900 11px var(--font); color: #fff; }
+.cap-tile.on .cap-selb { background: var(--primary); }
+.cap-ghint { flex: none; padding: 12px 18px; border-top: 1px solid var(--border); font: 700 12.5px var(--font); color: var(--text-secondary); }
