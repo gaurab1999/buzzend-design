@@ -135,65 +135,98 @@ window.PostLB = (function () {
 
   const medalEmoji = (r) => (r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : "");
 
-  /* ══════════ glassy competition overlay on the immersive video ══════════
-     Replaces the tall inline board — top-3 + who-to-beat + one Beat-it. */
-  function fiComp(c) {
+  /* ══════════ inline competition strip (light card, matches community feed) ══════════
+     Sits between the post media and the actions row. Shows top-3 · who-to-beat ·
+     one Beat-it CTA. Replaces the old dark glass overlay so the feed matches
+     home-v7's community cards. */
+  function compStrip(c) {
     const B = rank(c.attempts), w = WT[c.wt];
     const me = B.find((a) => a.user.me);
     const challengers = B.filter((a) => a.user.name !== c.owner.name);
+    const chev = `<span class="pc-chev">${I("chevron", 18)}</span>`;
+    // one leaderboard row: rank (medal / #) · avatar · name · rep count
+    const row = (u, score, rk) => `<div class="pc-r${rk === 1 ? " top" : ""}">
+      <span class="pc-rk">${medalEmoji(rk) || `#${rk}`}</span>
+      <div class="pc-av" style="background-image:${grad(u.av)}"></div>
+      <span class="pc-nm">${u.me ? "You" : first(u)}</span>
+      <span class="pc-sc">${score}<small>reps</small></span></div>`;
 
     if (challengers.length === 0) {
       const o = c.ownerAttempt;
-      return `<div class="fi-comp empty" onclick="PostLB.go('leaderboard')">
-        <div class="fic-top"><span class="tr">🏆</span><span class="tt">${w.dn} · no challengers yet</span><span class="chev">${I("chevron", 16)}</span></div>
-        <div class="fic-bot"><span class="fic-beat">Be first — beat <b>${first(c.owner)}'s ${o.score}</b> in ${o.dur}s</span>
-          <button class="fic-cta" onclick="event.stopPropagation();PostLB.go('beatit')">Be #1 ${I("chevron", 14)}</button></div>
+      return `<div class="plbc-comp" onclick="PostLB.go('leaderboard')">
+        <div class="pc-head"><span class="pc-tr">🏆</span><span class="pc-tt">${w.dn} Challenge</span>
+          <span class="pc-tag hot">Be first</span>
+          <span class="pc-right">${chev}</span></div>
+        <div class="pc-board">${row(c.owner, o.score, 1)}</div>
+        <button class="pc-cta full" onclick="event.stopPropagation();PostLB.go('beatit')">${I("target", 15)} Be #1 — beat ${o.score}</button>
       </div>`;
     }
-    const target = me && me.rank > 1 ? B[me.rank - 2] : B[B.length - 1];
-    const avs = B.slice(0, 3).map((a) => `<i style="background-image:${grad(a.user.av)}"><span class="m">${medalEmoji(a.rank)}</span></i>`).join("");
-    return `<div class="fi-comp" onclick="PostLB.go('leaderboard')">
-      <div class="fic-top"><span class="tr">🏆</span><span class="tt">${w.dn} Challenge · ${challengers.length} competing</span>
-        ${me ? `<span class="you">You #${me.rank}</span>` : ""}<span class="chev">${I("chevron", 16)}</span></div>
-      <div class="fic-bot"><span class="fic-avs">${avs}</span>
-        <span class="fic-beat">beat <b>${first(target.user)}'s ${target.score}</b></span>
-        <button class="fic-cta" onclick="event.stopPropagation();PostLB.go('beatit')">${I("target", 14)} Beat it</button></div>
+    return `<div class="plbc-comp" onclick="PostLB.go('leaderboard')">
+      <div class="pc-head"><span class="pc-tr">🏆</span><span class="pc-tt">${w.dn} Challenge</span>
+        <span class="pc-tag">${challengers.length} competing</span>
+        <span class="pc-right">${me ? `<span class="pc-you">You #${me.rank}</span>` : ""}${chev}</span></div>
+      <div class="pc-board">${B.slice(0, 3).map((a) => row(a.user, a.score, a.rank)).join("")}</div>
+      <button class="pc-cta full" onclick="event.stopPropagation();PostLB.go('beatit')">${I("target", 15)} Beat it</button>
     </div>`;
   }
 
-  /* ══════════ FEED — immersive (Reels-style, reuses .fi-* ) ══════════ */
-  function postI(u, kind, thumb, opts) {
-    const o = opts || {}, c = o.competition;
-    const sub = kind === "attempt"
-      ? `<span>challenged <span class="lk">${o.withUser.name.split(" ")[0]}</span> · ${o.time}</span>`
-      : `<span>${o.time}</span>`;
-    // Beat-it lives only in the competition overlay ("scorecard"), not here — keeps the rail uncluttered.
-    const rail = `
-      <span class="fi-s">${I("heart", 23)}<b>${o.likes}</b></span>
-      <span class="fi-s">${I("eye", 22)}<b>${o.views}</b></span>
-      <span class="fi-s">${I("share", 21)}</span>`;
-    const empty = c && rank(c.attempts).filter((a) => a.user.name !== c.owner.name).length === 0;
-    const cls = c ? (empty ? "comp empty" : "comp") : "";
-    return `<div class="fi-post ${cls}" style="background:${thumb}">
-      <div class="fi-top"><div class="fi-av" style="background-image:${grad(u.av)}"></div>
-        <div class="fi-n">${u.name}${sub}</div>
-        ${c ? "" : '<button class="fi-follow">Follow</button>'}</div>
-      ${c ? `<div class="fi-status">${statusChip(o.status)}</div>` : ""}
-      ${o.repChip ? `<div class="fi-repbadge">${I(WT[o.wt].i, 16)} ${o.repChip}</div>` : ""}
-      <div class="fi-play">${I("play", 24)}</div>
-      <div class="fi-side">${rail}</div>
-      ${c ? fiComp(c) : `<div class="fi-cap"><span class="fi-tag">${I("activity", 13)} Post</span></div>`}
-    </div>`;
+  // media status pill (top-right): Live · Nd left  /  Ended
+  function mediaStatus(st) {
+    if (!st) return "";
+    return st.ended
+      ? `<span class="cf-cstatus ended">Ended</span>`
+      : `<span class="cf-cstatus live"><span class="d"></span>Live · ${st.txt}</span>`;
+  }
+
+  /* ══════════ FEED — community-card style (home-v7 parity) ══════════
+     Each post is a light .cf-card (community.css): inset header + actions,
+     edge-to-edge media. Competition posts add compStrip() under the media. */
+  const _liked = {};
+  function like(i, base, ev) {
+    ev.stopPropagation();
+    _liked[i] = !_liked[i];
+    const on = _liked[i];
+    _root.querySelectorAll(`[data-plike="${i}"]`).forEach((el) => el.classList.toggle("liked", on));
+    _root.querySelectorAll(`[data-plikec="${i}"]`).forEach((el) => { el.textContent = fmt(base + (on ? 1 : 0)); });
+  }
+
+  function feedCard(post, i) {
+    const u = post.u, c = post.competition, w = c ? WT[c.wt] : null;
+    const sub = post.attemptOf
+      ? `${post.time} · challenged <a class="cf-chlink" onclick="event.stopPropagation();PostLB.go('leaderboard')">${first(post.attemptOf)}</a>`
+      : c
+      ? `${post.time} · <a class="cf-chlink" onclick="event.stopPropagation();PostLB.go('leaderboard')">${I(w.i, 12)} ${w.dn} Challenge</a>`
+      : `${post.time}`;
+    const dest = c ? "leaderboard" : "video";
+    const repBadge = post.repChip
+      ? `<span class="cf-cbadge rep"><span class="z">${I("zap", 12)}</span>${post.repChip} reps</span>`
+      : c ? `<span class="cf-cbadge">${I(w.i, 12)} ${w.dn}</span>` : "";
+    const media = `<div class="cf-card-media" style="background:${post.thumb}" onclick="PostLB.go('${dest}')">
+      ${post.cap ? `<div class="cap">${post.cap}</div>` : ""}
+      <span class="cf-mplay">${I("play", 20)}</span>
+      ${repBadge}${mediaStatus(post.status)}</div>`;
+    const actions = `<div class="cf-card-a">
+      <span class="cf-a"><span class="like${_liked[i] ? " liked" : ""}" data-plike="${i}" onclick="PostLB.like(${i},${post.likes},event)">${I("heart", 17)}</span><b data-plikec="${i}">${fmt(post.likes + (_liked[i] ? 1 : 0))}</b></span>
+      <span class="cf-a">${I("eye", 17)} ${post.views}</span>
+      <span class="cf-a">${I("share", 17)} Share</span></div>`;
+    return `<div class="cf-card">
+      <div class="cf-card-h">
+        <div class="av" style="background-image:${grad(u.av)}"></div>
+        <div class="who"><div class="nm"><b>${u.name}</b></div><div class="t">${sub}</div></div>
+        <button class="mm">${I("more", 18)}</button></div>
+      ${media}
+      ${c ? compStrip(c) : ""}
+      ${actions}</div>`;
   }
 
   function feed() {
-    return `<div class="plb-feed immersive">
-      <div class="plb-tabs-top"><span class="t on">Posts</span></div>
-      ${postI(U.riya, "video", THUMB[0], { time: "2h ago", likes: 0, views: 3, competition: COMP_SQUAT_FEED, status: { live: true, txt: "2d left" } })}
-      ${postI(U.kriti, "attempt", THUMB[1], { withUser: U.riya, time: "15d", likes: 0, views: 0, wt: "SQUAT", repChip: "15", competition: COMP_SQUAT_FEED, status: { live: true, txt: "2d left" } })}
-      ${postI(U.kriti, "video", THUMB[2], { time: "1d ago", likes: 0, views: 1, competition: COMP_JJ_EMPTY, status: { live: true, txt: "5h left" } })}
-      ${postI(U.gaurav, "video", THUMB[3], { time: "5min ago", likes: 120, views: "15.6k" })}
-    </div>`;
+    const posts = [
+      { u: U.riya, thumb: THUMB[0], time: "2h ago", likes: 12, views: 340, competition: COMP_SQUAT_FEED, status: { live: true, txt: "2d left" }, cap: "5 clean squats — who's beating this?" },
+      { u: U.kriti, thumb: THUMB[1], time: "15d", likes: 8, views: 210, wt: "SQUAT", repChip: 2, attemptOf: U.riya, competition: COMP_SQUAT_FEED, status: { live: true, txt: "2d left" } },
+      { u: U.kriti, thumb: THUMB[2], time: "1d ago", likes: 4, views: 88, competition: COMP_JJ_EMPTY, status: { live: true, txt: "5h left" }, cap: "Jumping-jack sprint — beat me!" },
+      { u: U.gaurav, thumb: THUMB[3], time: "5min ago", likes: 120, views: "15.6k", cap: "Morning grind, done 💪" },
+    ];
+    return `<div class="plb-cardfeed"><div class="cf-cards">${posts.map(feedCard).join("")}</div></div>`;
   }
 
   /* ══════════ BEAT IT — "Beat This Score" (beat_it_screen.dart) ══════════
@@ -206,66 +239,85 @@ window.PostLB = (function () {
     const ended = mode === "ended";                        // competition.active == false / past expiresAt
     const c = mainComp("ranked"), B = rank(c.attempts);
     const target = c.ownerAttempt;                        // ownerOriginalAttempt (Target)
-    const best = single ? target : B[0];                  // single ⇒ best attempt == owner attempt (collapse)
-    const showBest = !single && best.user.name !== target.user.name;
+    const best = single ? target : B[0];                  // single ⇒ best == owner attempt (collapse)
+    const showVs = !single && best.user.name !== target.user.name;
     const w = WT[c.wt];
-    const scoreCard = (cls, lbl, u, score, dur) => `<div class="bi-score ${cls}">
-      <div class="lbl">${lbl}</div>
-      <div class="who"><div class="av" style="background-image:${grad(u.av)}"></div><div class="nm">${first(u)}</div></div>
-      <div class="val"><span class="n">${score}</span><span class="u">reps</span></div>
-      <div class="tm">${I("clock", 14)} ${dur}s</div></div>`;
-
-    // ✨ motivational ladder — framed on the score to beat (competition best), viewer-agnostic.
-    // Ended competitions (active==false) close attempts and show the final winner instead.
     const goal = best.score + 1;
-    const ladder = ended
-      ? `<div class="bi-lead"><div class="row"><span class="l">🏁 Challenge ended</span><span class="r">Winner · ${first(best.user)}</span></div>
-          <div class="goal">Final score <b>${best.score} reps</b> — this challenge is closed to new attempts.</div></div>`
-      : single
-      ? `<div class="bi-lead"><div class="row"><span class="l">Score to beat</span><span class="r">${target.score} reps</span></div>
-          <div class="goal">No one's beaten this yet — first to <b>${goal}+ reps</b> takes #1</div></div>`
-      : `<div class="bi-lead"><div class="row"><span class="l">Score to beat</span><span class="r">${best.score} reps · ${first(best.user)}</span></div>
-          <div class="goal">Hit <b>${goal}+ reps</b> to claim #1</div></div>`;
+    const champ = best;                                    // whoever holds #1 (owner in single mode)
 
-    return `<div class="beatit">
-      <div class="bi-bar"><span class="bk" onclick="PostLB.go('feed')">${I("back", 22)}</span><span class="ti">Challenge Details</span></div>
-      <div class="card">
-        <div class="h">${ended ? "Challenge Over" : "Beat This Score"}</div>
-        <div class="ex">${I(w.i, 48)}</div>
-        <div class="bi-scores">
-          ${scoreCard("target", "Target Score", target.user, target.score, target.dur)}
-          ${showBest || ended ? `<div class="div"></div>${scoreCard("best", ended ? "Winning Score" : "Best Score", best.user, best.score, best.dur)}` : ""}
-        </div>
-        <div class="hint">${ended ? "Attempts are closed for this challenge." : "Click the start button to start the challenge."}</div>
-      </div>
-      ${ladder}
-      ${ended
-        ? `<button class="start disabled" disabled>Competition ended</button>`
-        : `<button class="start" onclick="PostLB.go('leaderboard')">Start</button>`}
+    // ── hero: the number to beat, front and centre, over a teal gradient ──
+    const heroLabel = ended ? "WINNING SCORE" : "SCORE TO BEAT";
+    const champLine = ended
+      ? `<b>${first(champ.user)}</b> won this challenge`
+      : single
+      ? `<b>${first(champ.user)}</b> set the pace`
+      : `<b>${first(champ.user)}</b> holds #1`;
+    const goalLine = ended
+      ? `Attempts are closed for this challenge`
+      : single
+      ? `Be first to <b>${goal}+ reps</b> to claim #1`
+      : `Hit <b>${goal}+ reps</b> to take the top spot`;
+    const hero = `<div class="bi2-hero">
+      <div class="bi2-bar"><span class="bk" onclick="PostLB.go('feed')">${I("back", 22)}</span><span class="ti">${ended ? "Challenge Over" : "Beat This Score"}</span></div>
+      <span class="bi2-ex">${I(w.i, 17)} ${w.dn.toUpperCase()}</span>
+      <div class="bi2-label">${heroLabel}</div>
+      <div class="bi2-big"><span class="n">${best.score}</span><span class="u">reps</span></div>
+      <div class="bi2-champ"><span class="crown">${ended ? "🏆" : "👑"}</span>
+        <div class="av" style="background-image:${grad(champ.user.av)}"></div>
+        <span class="who">${champLine} · ${champ.dur}s</span></div>
+      <div class="bi2-goal">${goalLine}</div>
     </div>`;
+
+    // ── head-to-head: original target vs current best (only once beaten) ──
+    const vsCard = (cls, lbl, a) => `<div class="vs-card ${cls}">
+      <div class="vh"><div class="av" style="background-image:${grad(a.user.av)}"></div>
+        <div class="vmeta"><b>${first(a.user)}</b><span>${lbl}</span></div></div>
+      <div class="vv"><span class="n">${a.score}</span><small>reps</small></div>
+      <div class="vt">${I("clock", 13)} ${a.dur}s</div></div>`;
+    const vs = showVs || ended
+      ? `<div class="bi2-vs">${vsCard("target", "Original target", target)}<div class="vs-mid">VS</div>${vsCard("best", ended ? "Winner" : "Current best", best)}</div>`
+      : `<div class="bi2-vs solo">${vsCard("target", "The one to beat", target)}</div>`;
+
+    // ── how it works ──
+    const steps = ended
+      ? [`This challenge is now closed`, `${first(best.user)} took the win with ${best.score} reps`, `Start a challenge of your own to compete`]
+      : [`Record your ${w.dn.toLowerCase()} attempt`, `AI counts your reps live as you go`, `Beat ${best.score} reps to claim the #1 spot`];
+    const how = `<div class="bi2-how"><div class="hh">How it works</div>
+      ${steps.map((s, k) => `<div class="step"><span class="k">${k + 1}</span><span class="tx">${s}</span></div>`).join("")}</div>`;
+
+    const cta = ended
+      ? `<button class="bi2-start disabled" disabled>Challenge ended</button>`
+      : `<button class="bi2-start" onclick="PostLB.go('leaderboard')">${I("target", 20)} Start challenge</button>`;
+
+    return `<div class="bi2${ended ? " ended" : ""}">
+      ${hero}
+      <div class="bi2-sheet">${vs}${how}</div>
+      ${cta}</div>`;
   }
 
   /* ══════════ FULL LEADERBOARD (leaderboard_screen.dart) ══════════ */
   let _lbTab = "leaderboard", _lbCase = "podium";
 
-  function podium(top3, standing) {
-    // ✨ bars scaled to the actual score so the gap is legible (min 34px)
-    const maxV = Math.max(1, ...top3.map((x) => x.score));
+  function podium(top3) {
+    // Classic rank-based silhouette (centre tallest). Avatars sit ON the pedestal
+    // (overlapping the top) with a medal badge; score on the block, name beneath.
+    const ht = (r) => (r === 1 ? 96 : r === 2 ? 74 : 60);
+    const bg = (r) => (r === 1 ? "linear-gradient(180deg,#ffd66b,#ffb020)"
+      : r === 2 ? "linear-gradient(180deg,#e3e8ee,#aeb7c1)"
+      : "linear-gradient(180deg,#e6a769,#c17e40)");
+    const medal = (r) => (r === 1 ? "🥇" : r === 2 ? "🥈" : "🥉");
     const slot = (r) => {
       const b = top3.find((x) => x.rank === r);
-      const first_ = r === 1;
-      const ht = b ? 34 + Math.round((b.score / maxV) * 56) : r === 1 ? 84 : r === 2 ? 60 : 48;
-      if (!b) return `<div class="lb-pod ghost ${first_ ? "first" : ""}"><div class="crown"></div>
-        <div class="pa"></div><div class="pn">Empty Spot</div>
-        <div class="bar" style="height:${ht}px"></div></div>`;
-      // gold / silver / bronze — matches the medal discs (silver was invisible on the grey bg)
-      const bg = r === 1 ? "linear-gradient(180deg,#ffd66b,#ffb020)"
-        : r === 2 ? "linear-gradient(180deg,#e3e8ee,#b4bcc6)"
-        : "linear-gradient(180deg,#e6a769,#c17e40)";
-      return `<div class="lb-pod ${first_ ? "first" : ""}"><div class="crown">${first_ ? "👑" : ""}</div>
-        <div class="pa" style="background-image:${grad(b.user.av)}"></div>
-        <div class="pn">${first(b.user)}</div><div class="pv">${b.score} reps</div>
-        <div class="bar" style="height:${ht}px;background:${bg}"></div></div>`;
+      const first_ = r === 1 ? "first" : "";
+      if (!b) return `<div class="lb-pod ghost ${first_}">
+        <div class="pa"></div>
+        <div class="bar" style="height:${ht(r)}px"><span class="psc ghostn">#${r}</span></div>
+        <div class="pn">Open</div></div>`;
+      return `<div class="lb-pod ${first_}">
+        ${first_ ? `<div class="crown">👑</div>` : ""}
+        <div class="pa" style="background-image:${grad(b.user.av)}"><span class="pmedal">${medal(r)}</span></div>
+        <div class="bar" style="height:${ht(r)}px;background:${bg(r)}"><span class="psc">${b.score}<small>reps</small></span></div>
+        <div class="pn">${first(b.user)}</div></div>`;
     };
     return `<div class="lb-podium">${slot(2)}${slot(1)}${slot(3)}</div>`;
   }
@@ -297,7 +349,7 @@ window.PostLB = (function () {
       const above = me.rank > 1 ? B[me.rank - 2] : null;
       const sub = me.rank === 1 ? `You lead · ${me.dur} sec` : `${above.score - me.score} reps behind #${me.rank - 1} ${first(above.user)}`;
       banner = `<div class="lb-you"><span class="rk">#${me.rank}</span>
-        <div class="tx"><b>YOUR RANK</b><span>${sub}</span></div><div class="v">${me.score}</div></div>`;
+        <div class="tx"><b>YOUR RANK</b><span>${sub}</span></div><div class="v">${me.score}<small>reps</small></div></div>`;
     } else {
       const txt = c.ended ? "You didn't compete" : onlyOwner ? "Be the first to attempt" : "Not ranked yet";
       const btn = c.ended
@@ -331,7 +383,7 @@ window.PostLB = (function () {
 
     return `<div class="lbs-body">${banner}
       <div style="height:9px"></div>${ref}
-      ${podium(top3, state)}
+      ${podium(top3)}
       ${othersSec}
     </div>`;
   }
@@ -351,17 +403,14 @@ window.PostLB = (function () {
   // Bottom CTA banner text. Ranked copy references the rank directly ABOVE the viewer
   // (the next one to overtake), not always #1.
   function lbCtaText(c, D) {
-    const { B, me, topEntry, nextAvail, onlyOwner, state } = D;
-    // onlyOwner state ⇒ viewer is always a NON-owner (owner-as-viewer derives `ranked`),
-    // so frame as a challenge, never "extend your lead".
-    if (onlyOwner) return `Be the first to beat ${first(c.owner)}'s ${c.ownerAttempt.score}`;
-    if (state === "notRanked") {
-      if (nextAvail === 3) return `Claim bronze — #3 is open · beat ${B[1] ? B[1].score : 0} reps`;
-      return `Post to get ranked · beat ${first(topEntry.user)}'s ${topEntry.score} to lead`;
-    }
-    if (me.rank === 1) return "Smash your record 🔥";
+    const { B, me, nextAvail, onlyOwner, state } = D;
+    // Concise, verb-first labels — the CTA records an attempt.
+    // onlyOwner ⇒ viewer is always a NON-owner (owner-as-viewer derives `ranked`).
+    if (onlyOwner) return "Be the first";
+    if (state === "notRanked") return nextAvail === 3 ? "Claim bronze" : "Get ranked";
+    if (me.rank === 1) return "Beat your best";
     const above = B[me.rank - 2];
-    return `Beat ${first(above.user)} — ${above.score - me.score} reps to catch up`;
+    return `Beat ${first(above.user)}`;
   }
 
   function leaderboard() {
@@ -374,7 +423,7 @@ window.PostLB = (function () {
     const indicator = c.ended ? statusChip({ ended: true }) : `<span class="avs">${avs}</span>${attCount} attempted`;
     // bottom CTA: disabled winner banner when the competition is over
     const cta = c.ended
-      ? `<button class="lbs-cta disabled" disabled>🏁 ${first(D.topEntry.user)} won · challenge closed</button>`
+      ? `<button class="lbs-cta disabled" disabled>🏁 Challenge closed</button>`
       : `<button class="lbs-cta" onclick="PostLB.go('beatit')">${lbCtaText(c, D)} ${I("chevron", 18)}</button>`;
 
     return `<div class="lbs">
@@ -431,5 +480,5 @@ window.PostLB = (function () {
 
   function start(root, v) { _root = root; _view = v || "feed"; syncChips(); paint(); }
 
-  return { start, go, lbTab, setCase, setBiMode, render: paint };
+  return { start, go, lbTab, setCase, setBiMode, like, render: paint };
 })();
