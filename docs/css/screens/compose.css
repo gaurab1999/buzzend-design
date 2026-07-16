@@ -114,3 +114,42 @@
 .cp-updone { width: 76px; height: 76px; border-radius: 50%; margin: 0 auto 16px; background: color-mix(in srgb,var(--primary) 15%,transparent); color: var(--primary); display: grid; place-items: center; }
 .cp-uptx { font: 900 18px var(--font); color: var(--text-primary); }
 .cp-upsub { font: 600 13px var(--font); color: var(--text-secondary); margin-top: 6px; max-width: 240px; }
+
+/* ── interactive editor: draw canvas · selectable overlays · format bar ── */
+.cp-draw { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+.cp-canvas.drawing .cp-draw { z-index: 6; pointer-events: auto; touch-action: none; cursor: crosshair; }
+.cp-canvas.drawing .cp-ov { pointer-events: none; }
+.cp-ov { z-index: 3; }
+.cp-ov.txt { outline: none; min-width: 14px; white-space: nowrap; }
+.cp-ov.sel { outline: 2px dashed rgba(255,255,255,.9); outline-offset: 4px; border-radius: 4px; }
+.cp-tool.on span { background: rgba(255,255,255,.22); color: #ffd66b; }
+.cp-fmt { display: none; align-items: center; gap: 12px; padding: 10px 14px; border-top: 1px solid rgba(255,255,255,.1); overflow-x: auto; }
+.cp-fmt.show { display: flex; }
+.cp-fmt:not(.is-text) .cp-swrow { display: none; }
+.cp-swrow { display: flex; gap: 8px; flex: none; }
+.cp-sw { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); cursor: pointer; flex: none; padding: 0; }
+.cp-sw.on { border-color: #fff; transform: scale(1.15); }
+.cp-fmtbtns { display: flex; gap: 8px; margin-left: auto; flex: none; }
+.cp-fbtn { min-width: 42px; height: 34px; border-radius: 9px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; font: 900 13px var(--font); cursor: pointer; display: grid; place-items: center; }
+.cp-fbtn.del { color: #ff6a62; }
+.cp-drawrow { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.cp-range { flex: 1; accent-color: var(--primary); height: 22px; }
+.cp-h { cursor: ew-resize; touch-action: none; }
+.cp-trimtrack { touch-action: none; }
+
+/* ── video preview content + trim video frames ── */
+.cp-vwm { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.16); pointer-events: none; }
+.cp-trimhead { display: flex; align-items: center; margin-bottom: 14px; }
+.cp-trimstat { flex: 1; text-align: center; }
+.cp-trimstat.mid { border-left: 1px solid rgba(255,255,255,.12); border-right: 1px solid rgba(255,255,255,.12); }
+.cp-trimstat .k { display: block; font: 700 9.5px var(--font); color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+.cp-trimstat b { font: 900 17px var(--font); color: #fff; } .cp-trimstat.mid b { color: var(--primary); }
+.cp-trimtrack { height: 58px; }
+.cp-frame { position: relative; overflow: hidden; opacity: 1; }
+.cp-tfig { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.55); }
+.cp-trimdim { position: absolute; top: 0; bottom: 0; background: rgba(0,0,0,.58); z-index: 1; }
+.cp-trimsel { background: none; z-index: 2; }
+.cp-h { top: 0; bottom: 0; height: auto; width: 16px; transform: none; border-radius: 0; display: grid; place-items: center; }
+.cp-h.l { left: 0; } .cp-h.r { right: 0; }
+.cp-h i { width: 4px; height: 20px; border-radius: 2px; background: rgba(0,0,0,.55); }
+.cp-trimhint { display: flex; align-items: center; justify-content: center; gap: 6px; font: 700 11.5px var(--font); color: rgba(255,255,255,.55); margin-top: 12px; }

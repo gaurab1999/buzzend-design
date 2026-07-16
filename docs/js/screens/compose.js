@@ -30,9 +30,12 @@ window.Composer = (function () {
   ];
   const assetG = (a) => a.type === "video" ? (a.ex ? exG(a.ex) : a.g) : a.g;
   const mmss = (s) => Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0");
+  const COLORS = ["#ffffff", "#111111", "#ef4444", "#f59e0b", "#fde047", "#22c55e", "#3b82f6", "#a855f7", "#ec4899"];
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   let host, st;
-  function fresh() { return { step: "pick", filter: "all", sel: [], assets: [], idx: 0, pose: null, editorOpen: false, tool: null, targets: { profile: true, challenges: [] } }; }
+  function fresh() { return { step: "pick", filter: "all", sel: [], assets: [], idx: 0, pose: null, editorOpen: false, tool: null, selOv: -1, drawing: false, brush: { color: "#ffffff", size: 6 }, targets: { profile: true, challenges: [] } }; }
 
   /* ═══════════ 1 · PICK ═══════════ */
   function renderPick() {
@@ -83,14 +86,28 @@ window.Composer = (function () {
   }
 
   /* ═══════════ 2 · EDIT (PreviewScreen) ═══════════ */
-  function previewAsset(a, big) {
-    const ovs = a.overlays.map((o, k) => o.kind === "text"
-      ? `<div class="cp-ov txt" data-a="${a.id}" data-k="${k}" style="left:${o.x * 100}%;top:${o.y * 100}%">${o.txt}</div>`
-      : `<div class="cp-ov emo" data-a="${a.id}" data-k="${k}" style="left:${o.x * 100}%;top:${o.y * 100}%">${o.txt}</div>`).join("");
+  function overlayHtml(o, k) {
+    const sel = st.selOv === k ? " sel" : "";
+    if (o.kind === "text")
+      return `<div class="cp-ov txt${sel}" data-k="${k}" style="left:${o.x * 100}%;top:${o.y * 100}%;color:${o.color || "#fff"};font-size:${o.size || 28}px">${esc(o.txt)}</div>`;
+    return `<div class="cp-ov emo${sel}" data-k="${k}" style="left:${o.x * 100}%;top:${o.y * 100}%;font-size:${Math.round(44 * (o.scale || 1))}px">${o.txt}</div>`;
+  }
+  function previewAsset(a) {
+    const ovs = a.overlays.map(overlayHtml).join("");
     const reps = a.pose ? `<div class="cp-reps">${I(a.pose.ic, 14)} I completed ${a.pose.reps} ${a.pose.name}</div>` : "";
     const vid = a.type === "video" ? `<button class="cp-play" onclick="event.stopPropagation()">${I("play", 26)}</button>
       <div class="cp-vinfo">${a.muted ? I("mute", 13) : I("volume", 13)}${a.speed !== 1 ? `<span class="cp-spd">${a.speed}x</span>` : ""}<span class="cp-dur">${mmss(a.dur)}</span></div>` : "";
-    return `<div class="cp-canvas" style="${a.bg ? "background:" + a.bg : "background-image:" + assetG(a)}">${vid}${reps}${ovs}</div>`;
+    const vwm = a.type === "video" ? `<span class="cp-vwm">${I(a.ex || "activity", 130)}</span>` : "";
+    return `<div class="cp-canvas${st.drawing ? " drawing" : ""}" style="${a.bg ? "background:" + a.bg : "background-image:" + assetG(a)}">${vwm}${vid}${reps}<canvas class="cp-draw"></canvas>${ovs}</div>`;
+  }
+  // simulated video frames for the trim strip: same clip tinted per-frame + a moving
+  // figure, so the timeline actually looks like footage you can scrub.
+  function trimFrames(a, n) {
+    return Array.from({ length: n }, (_, i) => {
+      const b = (0.7 + 0.42 * Math.abs(Math.sin(i * 0.9 + 1))).toFixed(2), hue = Math.round(Math.sin(i * 0.6) * 16);
+      const y = Math.round((0.5 - Math.abs(Math.sin(i * 0.9 + 1))) * 8), sc = (0.7 + 0.3 * Math.abs(Math.sin(i * 0.9 + 1))).toFixed(2);
+      return `<div class="cp-frame" style="background:${assetG(a)};filter:brightness(${b}) hue-rotate(${hue}deg)"><span class="cp-tfig" style="transform:translateY(${y}px) scale(${sc})">${I(a.ex || "activity", 14)}</span></div>`;
+    }).join("");
   }
   function thumbStrip() {
     const canAdd = !(st.assets.length && st.assets[0].type === "video") && st.assets.length < MAX;
@@ -111,12 +128,12 @@ window.Composer = (function () {
         <div class="cp-ttl">${st.assets.length > 1 ? st.idx + 1 + " / " + st.assets.length : "Preview"}</div>
         <button class="cp-next" onclick="Composer.toPost()">Next</button>
       </div>
-      <div class="cp-stage">${previewAsset(a, true)}${nav}${dots}</div>
+      <div class="cp-stage">${previewAsset(a)}${nav}${dots}</div>
       ${st.editorOpen ? editorUI(a) : `${thumbStrip()}
         <div class="cp-editbar"><button class="cp-editbtn" onclick="Composer.openEditor()">${I("edit", 16)} Edit ${a.type === "video" ? "video" : "photo"}</button></div>`}
     </div>`;
     window.Icons.init(host);
-    wireDrag();
+    wireStage();
   }
   function go(i) { st.idx = i; renderEdit(); }
   function remove(i) {
@@ -136,68 +153,165 @@ window.Composer = (function () {
     else doIt();
   }
 
-  /* ── reorder (drag) — UI-only extra ── */
+  /* ── stage wiring: thumbnail reorder · draw canvas · overlays · trim handles ── */
   let dragFrom = null;
-  function wireDrag() {
-    const strip = document.getElementById("cp-strip"); if (!strip) return;
-    strip.querySelectorAll(".cp-th").forEach((el) => {
-      el.addEventListener("dragstart", (e) => { dragFrom = +el.dataset.i; el.classList.add("dragging"); });
+  function wireStage() {
+    const strip = document.getElementById("cp-strip");
+    if (strip) strip.querySelectorAll(".cp-th").forEach((el) => {
+      el.addEventListener("dragstart", () => { dragFrom = +el.dataset.i; el.classList.add("dragging"); });
       el.addEventListener("dragend", () => { dragFrom = null; strip.querySelectorAll(".cp-th").forEach((t) => t.classList.remove("dragging", "over")); });
       el.addEventListener("dragover", (e) => { e.preventDefault(); el.classList.add("over"); });
       el.addEventListener("dragleave", () => el.classList.remove("over"));
       el.addEventListener("drop", (e) => { e.preventDefault(); const to = +el.dataset.i; if (dragFrom == null || dragFrom === to) return; const m = st.assets.splice(dragFrom, 1)[0]; st.assets.splice(to, 0, m); st.idx = to; renderEdit(); });
     });
-    // draggable text/emoji overlays
-    host.querySelectorAll(".cp-ov").forEach((el) => {
-      el.addEventListener("pointerdown", (e) => {
-        e.preventDefault(); const box = el.closest(".cp-canvas").getBoundingClientRect();
-        const a = st.assets.find((x) => x.id === el.dataset.a), o = a.overlays[+el.dataset.k];
-        const move = (ev) => { o.x = Math.min(.94, Math.max(.03, (ev.clientX - box.left) / box.width)); o.y = Math.min(.92, Math.max(.05, (ev.clientY - box.top) / box.height)); el.style.left = o.x * 100 + "%"; el.style.top = o.y * 100 + "%"; };
-        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
-        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
-      });
+    const canvas = host.querySelector(".cp-canvas"); if (!canvas) return;
+    const a = st.assets[st.idx];
+    const cv = canvas.querySelector(".cp-draw");
+    if (cv) { const r = canvas.getBoundingClientRect(); cv.width = r.width; cv.height = r.height; replayStrokes(cv, a); if (st.drawing) wireDraw(cv, a); }
+    canvas.querySelectorAll(".cp-ov").forEach((el) => wireOverlay(el, canvas, a));
+    if (st.tool === "trim" && a.type === "video") wireTrim(a);
+    updateFmtBar();
+  }
+
+  /* ── overlays: drag to move · tap to select · text is editable inline ── */
+  function wireOverlay(el, canvas, a) {
+    const k = +el.dataset.k, o = a.overlays[k];
+    if (o.kind === "text") {
+      el.setAttribute("contenteditable", "true");
+      el.addEventListener("input", () => { o.txt = el.textContent; a.edited = true; });
+    }
+    el.addEventListener("pointerdown", (e) => {
+      if (st.drawing) return;
+      const box = canvas.getBoundingClientRect(); const sx = e.clientX, sy = e.clientY; let moved = false;
+      const move = (ev) => {
+        if (!moved && (Math.abs(ev.clientX - sx) > 6 || Math.abs(ev.clientY - sy) > 6)) { moved = true; try { el.blur(); } catch (e2) {} const s = window.getSelection && getSelection(); if (s && s.removeAllRanges) s.removeAllRanges(); selectOverlay(k); }
+        if (moved) { o.x = clamp((ev.clientX - box.left) / box.width, .03, .97); o.y = clamp((ev.clientY - box.top) / box.height, .05, .95); el.style.left = o.x * 100 + "%"; el.style.top = o.y * 100 + "%"; a.edited = true; }
+      };
+      const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); if (!moved) { selectOverlay(k); if (o.kind === "text") el.focus(); } };
+      document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
     });
+  }
+  function selectOverlay(k) {
+    st.selOv = k;
+    const canvas = host.querySelector(".cp-canvas"); if (canvas) canvas.querySelectorAll(".cp-ov").forEach((el) => el.classList.toggle("sel", +el.dataset.k === k));
+    updateFmtBar();
+  }
+  function updateFmtBar() {
+    const bar = host.querySelector(".cp-fmt"); if (!bar) return;
+    const a = st.assets[st.idx], o = (st.selOv >= 0 && a.overlays[st.selOv]) ? a.overlays[st.selOv] : null;
+    if (!o) st.selOv = -1;
+    bar.classList.toggle("show", !!o && !st.drawing);
+    bar.classList.toggle("is-text", !!(o && o.kind === "text"));
+    bar.querySelectorAll(".cp-sw").forEach((s) => s.classList.toggle("on", !!(o && o.kind === "text" && s.dataset.c === (o.color || "#ffffff"))));
+  }
+  function setColor(c) { const o = st.assets[st.idx].overlays[st.selOv]; if (!o) return; o.color = c; st.assets[st.idx].edited = true; const el = host.querySelector('.cp-ov[data-k="' + st.selOv + '"]'); if (el) el.style.color = c; updateFmtBar(); }
+  function sizeStep(d) {
+    const a = st.assets[st.idx], o = a.overlays[st.selOv]; if (!o) return; a.edited = true;
+    const el = host.querySelector('.cp-ov[data-k="' + st.selOv + '"]');
+    if (o.kind === "text") { o.size = clamp((o.size || 28) + d * 4, 12, 76); if (el) el.style.fontSize = o.size + "px"; }
+    else { o.scale = clamp((o.scale || 1) + d * 0.18, 0.4, 4); if (el) el.style.fontSize = Math.round(44 * o.scale) + "px"; }
+  }
+  function deleteSel() { const a = st.assets[st.idx]; if (st.selOv < 0) return; a.overlays.splice(st.selOv, 1); st.selOv = -1; renderEdit(); }
+
+  /* ── freehand draw on a canvas layer ── */
+  function replayStrokes(cv, a) {
+    const ctx = cv.getContext("2d"); ctx.clearRect(0, 0, cv.width, cv.height);
+    (a.strokes || []).forEach((s) => { ctx.strokeStyle = s.color; ctx.lineWidth = s.size; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
+      s.pts.forEach((p, i) => { const x = p[0] * cv.width, y = p[1] * cv.height; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); });
+  }
+  function wireDraw(cv, a) {
+    cv.onpointerdown = (e) => {
+      if (!st.drawing) return; e.preventDefault();
+      if (!a.strokes) a.strokes = [];
+      const r = cv.getBoundingClientRect();
+      const stroke = { color: st.brush.color, size: +st.brush.size, pts: [[(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]] };
+      a.strokes.push(stroke); a.edited = true; replayStrokes(cv, a);
+      const move = (ev) => { stroke.pts.push([(ev.clientX - r.left) / r.width, (ev.clientY - r.top) / r.height]); replayStrokes(cv, a); };
+      const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
+      document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+    };
+  }
+  function brushColor(c) { st.brush.color = c; host.querySelectorAll(".cp-panel .cp-sw").forEach((s) => s.classList.toggle("on", s.dataset.c === c)); }
+  function brushSize(v) { st.brush.size = +v; }
+  function undoStroke() { const a = st.assets[st.idx]; if (a.strokes && a.strokes.length) { a.strokes.pop(); const cv = host.querySelector(".cp-draw"); if (cv) replayStrokes(cv, a); } }
+  function clearDraw() { const a = st.assets[st.idx]; a.strokes = []; const cv = host.querySelector(".cp-draw"); if (cv) replayStrokes(cv, a); }
+
+  /* ── draggable trim handles ── */
+  function wireTrim(a) {
+    const track = host.querySelector(".cp-trimtrack"), selEl = host.querySelector(".cp-trimsel"); if (!track || !selEl) return;
+    if (!a.trim) a.trim = [0, a.dur];
+    const labs = host.querySelectorAll(".cp-trimlab span");
+    const drag = (which) => (e) => {
+      e.preventDefault(); e.stopPropagation(); const r = track.getBoundingClientRect();
+      const move = (ev) => {
+        const t = clamp((ev.clientX - r.left) / r.width, 0, 1) * a.dur;
+        if (which === "l") a.trim[0] = clamp(t, 0, a.trim[1] - 5); else a.trim[1] = clamp(t, a.trim[0] + 5, a.dur);
+        selEl.style.left = (a.trim[0] / a.dur * 100) + "%"; selEl.style.right = (100 - a.trim[1] / a.dur * 100) + "%";
+        if (labs[0]) labs[0].textContent = mmss(Math.round(a.trim[0])); if (labs[1]) labs[1].textContent = mmss(Math.round(a.trim[1])); a.edited = true;
+      };
+      const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
+      document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+    };
+    const hl = host.querySelector(".cp-h.l"), hr = host.querySelector(".cp-h.r");
+    if (hl) hl.addEventListener("pointerdown", drag("l")); if (hr) hr.addEventListener("pointerdown", drag("r"));
   }
 
   /* ── canvas editor ── */
   function openEditor() { st.editorOpen = true; renderEdit(); }
-  function closeEditor() { st.editorOpen = false; st.assets[st.idx].edited = true; st.tool = null; renderEdit(); }
+  function closeEditor() { st.editorOpen = false; st.assets[st.idx].edited = true; st.tool = null; st.drawing = false; st.selOv = -1; renderEdit(); }
   function editorUI(a) {
-    const tool = (ic, l, fn) => `<button class="cp-tool" onclick="${fn}"><span>${I(ic, 20)}</span>${l}</button>`;
-    const common = tool("type", "Text", "Composer.addText()") + tool("smile", "Sticker", "Composer.stickers()") + tool("edit", "Draw", "Composer.draw()") + tool("music", "Music", "Composer.music()") + tool("wand", "Background", "Composer.bg()");
-    const video = a.type === "video" ? tool("scissors", "Trim", "Composer.trim()") + tool(a.muted ? "mute" : "volume", a.muted ? "Muted" : "Volume", "Composer.mute()") + tool("speed", "Speed", "Composer.speed()") : "";
+    const tool = (ic, l, fn, on) => `<button class="cp-tool${on ? " on" : ""}" onclick="${fn}"><span>${I(ic, 20)}</span>${l}</button>`;
+    const common = tool("type", "Text", "Composer.addText()") + tool("smile", "Sticker", "Composer.stickers()", st.tool === "sticker") + tool("edit", "Draw", "Composer.draw()", st.drawing) + tool("music", "Music", "Composer.music()", st.tool === "music") + tool("wand", "Background", "Composer.bg()", st.tool === "bg");
+    const video = a.type === "video" ? tool("scissors", "Trim", "Composer.trim()", st.tool === "trim") + tool(a.muted ? "mute" : "volume", a.muted ? "Muted" : "Volume", "Composer.mute()", a.muted) + tool("speed", "Speed", "Composer.speed()", st.tool === "speed") : "";
+    const fmt = `<div class="cp-fmt">
+      <div class="cp-swrow">${COLORS.map((c) => `<button class="cp-sw" data-c="${c}" style="background:${c}" onclick="Composer.setColor('${c}')"></button>`).join("")}</div>
+      <div class="cp-fmtbtns"><button class="cp-fbtn" onclick="Composer.sizeStep(-1)">A−</button><button class="cp-fbtn" onclick="Composer.sizeStep(1)">A+</button><button class="cp-fbtn del" onclick="Composer.deleteSel()">${I("trash", 15)}</button></div></div>`;
     return `<div class="cp-editor">
       <div class="cp-etop"><button class="cp-eic" onclick="Composer.reset()">${I("refresh", 16)}</button>
         <div class="cp-etitle">Edit ${a.type === "video" ? "video" : "photo"}</div>
         <button class="cp-edone" onclick="Composer.closeEditor()">${I("check", 16)} Done</button></div>
+      ${fmt}
       ${st.tool ? toolPanel(a) : ""}
       <div class="cp-toolrail">${video}${common}</div>
     </div>`;
   }
   function toolPanel(a) {
     if (st.tool === "trim") {
-      const s = a.trim ? a.trim[0] : 0, e = a.trim ? a.trim[1] : a.dur;
-      return `<div class="cp-panel"><div class="cp-panelh">Trim · min 5s</div>
-        <div class="cp-trim"><div class="cp-trimtrack">${Array.from({ length: 10 }, () => `<div class="cp-frame" style="background-image:${assetG(a)}"></div>`).join("")}
-          <div class="cp-trimsel" style="left:${(s / a.dur) * 100}%;right:${100 - (e / a.dur) * 100}%"><span class="cp-h l"></span><span class="cp-h r"></span></div></div>
-          <div class="cp-trimlab"><span>${mmss(s)}</span><span>${mmss(e)}</span></div></div></div>`;
+      const s = a.trim ? a.trim[0] : 0, e = a.trim ? a.trim[1] : a.dur, D = a.dur;
+      return `<div class="cp-panel">
+        <div class="cp-trimhead"><div class="cp-trimstat"><span class="k">Start</span><b>${mmss(Math.round(s))}</b></div>
+          <div class="cp-trimstat mid"><span class="k">Keeping</span><b>${mmss(Math.round(e - s))}</b></div>
+          <div class="cp-trimstat"><span class="k">End</span><b>${mmss(Math.round(e))}</b></div></div>
+        <div class="cp-trimtrack">${trimFrames(a, 14)}
+          <div class="cp-trimdim" style="left:0;width:${s / D * 100}%"></div>
+          <div class="cp-trimdim" style="right:0;width:${100 - e / D * 100}%"></div>
+          <div class="cp-trimsel" style="left:${s / D * 100}%;right:${100 - e / D * 100}%"><span class="cp-h l"><i></i></span><span class="cp-h r"><i></i></span></div></div>
+        <div class="cp-trimhint">${I("scissors", 13)} Drag the ends to trim · min 5s</div></div>`;
     }
     if (st.tool === "speed") return `<div class="cp-panel"><div class="cp-panelh">Playback speed</div><div class="cp-chips">${[0.25, 0.5, 1, 1.25, 1.5].map((v) => `<button class="cp-chip ${a.speed === v ? "on" : ""}" onclick="Composer.setSpeed(${v})">${v}x</button>`).join("")}</div></div>`;
-    if (st.tool === "music") return `<div class="cp-panel"><div class="cp-panelh">Add music</div><div class="cp-tracks">${TRACKS.map((t, i) => `<button class="cp-track ${a.music === t ? "on" : ""}" onclick="Composer.setMusic('${t}')">${I("music", 15)} ${t}${a.music === t ? " " + I("check", 14) : ""}</button>`).join("")}</div></div>`;
-    if (st.tool === "sticker") return `<div class="cp-panel"><div class="cp-panelh">Stickers</div><div class="cp-emos">${EMO.map((e) => `<button class="cp-emo" onclick="Composer.putEmo('${e}')">${e}</button>`).join("")}</div></div>`;
-    if (st.tool === "bg") return `<div class="cp-panel"><div class="cp-panelh">Background</div><div class="cp-bgs">${["", "linear-gradient(135deg,#111,#333)", "linear-gradient(135deg,#1f6e5f,#2a9d8f)", "linear-gradient(135deg,#3a2a6a,#7c3aed)", "linear-gradient(135deg,#7a1f2a,#ef4444)"].map((b, i) => `<button class="cp-bg" style="${b ? "background:" + b : "background-image:" + assetG(a)}" onclick="Composer.setBg(${i},'${b}')"></button>`).join("")}</div></div>`;
+    if (st.tool === "music") return `<div class="cp-panel"><div class="cp-panelh">Add music</div><div class="cp-tracks">${TRACKS.map((t) => `<button class="cp-track ${a.music === t ? "on" : ""}" onclick="Composer.setMusic('${t}')">${I("music", 15)} ${t}${a.music === t ? " " + I("check", 14) : ""}</button>`).join("")}</div></div>`;
+    if (st.tool === "sticker") return `<div class="cp-panel"><div class="cp-panelh">Add a sticker</div><div class="cp-emos">${EMO.map((e) => `<button class="cp-emo" onclick="Composer.putEmo('${e}')">${e}</button>`).join("")}</div></div>`;
+    if (st.tool === "bg") return `<div class="cp-panel"><div class="cp-panelh">Background</div><div class="cp-bgs">${["", "linear-gradient(135deg,#111,#333)", "linear-gradient(135deg,#1f6e5f,#2a9d8f)", "linear-gradient(135deg,#3a2a6a,#7c3aed)", "linear-gradient(135deg,#7a1f2a,#ef4444)"].map((b) => `<button class="cp-bg" style="${b ? "background:" + b : "background-image:" + assetG(a)}" onclick="Composer.setBg('${b}')"></button>`).join("")}</div></div>`;
+    if (st.tool === "draw") return `<div class="cp-panel"><div class="cp-panelh">Draw · sketch on the media</div>
+      <div class="cp-swrow">${COLORS.map((c) => `<button class="cp-sw ${st.brush.color === c ? "on" : ""}" data-c="${c}" style="background:${c}" onclick="Composer.brushColor('${c}')"></button>`).join("")}</div>
+      <div class="cp-drawrow"><span class="cp-panelh" style="margin:0">Brush</span><input type="range" class="cp-range" min="2" max="26" value="${st.brush.size}" oninput="Composer.brushSize(this.value)">
+        <button class="cp-chip" onclick="Composer.undoStroke()">Undo</button><button class="cp-chip" onclick="Composer.clearDraw()">Clear</button></div></div>`;
     return "";
   }
-  function tp(t) { st.tool = st.tool === t ? null : t; renderEdit(); }
+  function tp(t) { st.tool = st.tool === t ? null : t; st.drawing = false; st.selOv = -1; renderEdit(); }
   const trim = () => tp("trim"), speed = () => tp("speed"), music = () => tp("music"), stickers = () => tp("sticker"), bg = () => tp("bg");
+  function draw() { st.drawing = !st.drawing; st.tool = st.drawing ? "draw" : null; st.selOv = -1; renderEdit(); }
   function mute() { const a = st.assets[st.idx]; a.muted = !a.muted; a.edited = true; renderEdit(); }
   function setSpeed(v) { st.assets[st.idx].speed = v; st.assets[st.idx].edited = true; renderEdit(); }
   function setMusic(t) { st.assets[st.idx].music = t; st.assets[st.idx].edited = true; renderEdit(); }
-  function setBg(i, b) { st.assets[st.idx].bg = b || null; st.assets[st.idx].edited = true; renderEdit(); }
-  function draw() { Buzzend.alert({ icon: "edit", title: "Draw", message: "Freehand drawing tool — sketch directly on your media." }); st.assets[st.idx].edited = true; }
-  function addText() { const a = st.assets[st.idx]; a.overlays.push({ kind: "text", txt: "Your text", x: 0.5, y: 0.5 }); a.edited = true; st.tool = null; renderEdit(); Buzzend.alert({ icon: "type", title: "Text added", message: "Drag it to reposition. Tap again in the app to edit the words, font and colour." }); }
-  function putEmo(e) { const a = st.assets[st.idx]; a.overlays.push({ kind: "emo", txt: e, x: 0.5, y: 0.4 }); a.edited = true; st.tool = null; renderEdit(); }
-  function reset() { Buzzend.confirm({ icon: "refresh", danger: true, title: "Revert all changes?", message: "This resets the media to the original.", confirmLabel: "Revert", onConfirm() { const a = st.assets[st.idx]; a.overlays = []; a.bg = null; a.muted = false; a.speed = 1; a.music = null; a.trim = null; a.edited = false; renderEdit(); } }); }
+  function setBg(b) { st.assets[st.idx].bg = b || null; st.assets[st.idx].edited = true; renderEdit(); }
+  function addText() {
+    const a = st.assets[st.idx]; a.overlays.push({ kind: "text", txt: "Tap to edit", x: 0.5, y: 0.42, color: "#ffffff", size: 30 }); a.edited = true; st.tool = null; st.drawing = false; renderEdit();
+    const k = a.overlays.length - 1; selectOverlay(k);
+    const el = host.querySelector('.cp-ov[data-k="' + k + '"]'); if (el) { el.focus(); try { const rng = document.createRange(); rng.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(rng); } catch (e) {} }
+  }
+  function putEmo(e) { const a = st.assets[st.idx]; a.overlays.push({ kind: "emo", txt: e, x: 0.5, y: 0.4, scale: 1 }); a.edited = true; st.tool = null; renderEdit(); selectOverlay(a.overlays.length - 1); }
+  function reset() { Buzzend.confirm({ icon: "refresh", danger: true, title: "Revert all changes?", message: "This resets the media to the original — overlays, drawings, trim and audio.", confirmLabel: "Revert", onConfirm() { const a = st.assets[st.idx]; a.overlays = []; a.strokes = []; a.bg = null; a.muted = false; a.speed = 1; a.music = null; a.trim = null; a.edited = false; st.selOv = -1; st.drawing = false; st.tool = null; renderEdit(); } }); }
 
   /* ═══════════ 3 · POST (where to post) ═══════════ */
   function toPost() { st.step = "post"; renderPost(); }
@@ -263,5 +377,6 @@ window.Composer = (function () {
 
   return { start, pick, filter, capture, cancel, toEdit, go, remove, addMore, back, openEditor, closeEditor,
     trim, speed, music, stickers, bg, mute, setSpeed, setMusic, setBg, draw, addText, putEmo, reset,
+    setColor, sizeStep, deleteSel, brushColor, brushSize, undoStroke, clearDraw,
     toPost, back2, tgProfile, tgChallenge, publish };
 })();
