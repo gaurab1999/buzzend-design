@@ -102,7 +102,7 @@ window.Discover = (function () {
   }
   function follow(btn, id) { const p = PEOPLE.find((x) => x.id === id); if (!p) return; p.followed = !p.followed; btn.textContent = p.followed ? "Following" : "Follow"; btn.className = "dc-follow " + (p.followed ? "yes" : "no"); }
   function join(btn, title) { Buzzend.alert({ icon: "trophy", title: "You're in!", message: "You joined “" + title + "”. Record a set to climb the board." }); }
-  function search() { Buzzend.alert({ icon: "search", title: "Search", message: "Search challenges and people by name — opens the search screen." }); }
+  function search() { location.href = "search.html"; }
   function createChallenge() { location.href = "create-challenge.html"; }
 
   // ── join-with-code dialog (faithful validation) ──

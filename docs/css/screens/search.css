@@ -1,0 +1,82 @@
+/* Search — two-endpoint search (People · Challenges) behind the Discover bar.
+   Sticky search field + tabs, per-tab result rows, recent/suggested empty state,
+   skeletons + no-results. Token/palette driven; works in light + dark. */
+
+/* ── sticky top: search field + tabs ── */
+.sr-top { position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--border); }
+.sr-bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.sr-back { flex: none; width: 38px; height: 38px; border: none; background: none; border-radius: 50%; display: grid; place-items: center; color: var(--text-primary); cursor: pointer; }
+.sr-back:active { background: var(--surface-alt); }
+.sr-field { flex: 1; display: flex; align-items: center; gap: 9px; height: 44px; padding: 0 12px; border-radius: 12px; background: var(--bg-canvas); border: 1.5px solid var(--border); }
+.sr-field:focus-within { border-color: var(--primary); }
+.sr-field > .bz-ico { color: var(--text-tertiary); flex: none; }
+.sr-field input { flex: 1; border: none; background: none; outline: none; font: 700 15px var(--font); color: var(--text-primary); min-width: 0; }
+.sr-field input::placeholder { color: var(--text-tertiary); font-weight: 600; }
+.sr-clear { flex: none; width: 24px; height: 24px; border-radius: 50%; border: none; background: var(--surface-alt); color: var(--text-secondary); display: none; place-items: center; cursor: pointer; }
+.sr-clear.show { display: grid; }
+
+.sr-tabs { display: flex; padding: 0 12px; gap: 4px; }
+.sr-tab { flex: 1; height: 44px; border: none; background: none; cursor: pointer; position: relative; font: 800 14px var(--font); color: var(--text-tertiary);
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.sr-tab .c { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 100px; background: var(--surface-alt); color: var(--text-secondary); font: 800 11px var(--font); display: inline-grid; place-items: center; }
+.sr-tab.on { color: var(--primary); }
+.sr-tab.on .c { background: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary); }
+.sr-tab::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 0; height: 2.5px; border-radius: 3px; background: transparent; }
+.sr-tab.on::after { background: var(--primary); }
+
+/* ── body ── */
+.sr-body { flex: 1; padding: 8px 0 96px; }
+.sr-count { padding: 12px 16px 4px; font: 800 12px var(--font); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .4px; }
+.sr-list { display: flex; flex-direction: column; }
+
+/* result row (people + challenge share the frame) */
+.sr-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 16px; background: none; border: none; text-align: left; cursor: pointer; font: inherit; }
+.sr-row:active { background: var(--surface-alt); }
+.sr-av { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 900 16px var(--font); }
+.sr-cover { flex: none; width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; color: #fff; }
+.sr-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.sr-meta .nm { font: 800 15px var(--font); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-meta .nm mark { background: color-mix(in srgb, var(--primary) 22%, transparent); color: var(--primary); border-radius: 3px; padding: 0 1px; }
+.sr-meta .sub { display: flex; align-items: center; gap: 5px; font: 700 12.5px var(--font); color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-meta .sub .bz-ico { flex: none; opacity: .85; }
+
+/* status pill on challenge rows */
+.sr-pill { font: 800 10.5px var(--font); padding: 2px 7px; border-radius: 100px; letter-spacing: .2px; }
+.sr-pill.live { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--success); }
+.sr-pill.soon { background: color-mix(in srgb, #3b82f6 16%, transparent); color: #3b82f6; }
+.sr-pill.open { background: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary); }
+.sr-pill.end { background: var(--surface-alt); color: var(--text-tertiary); }
+
+/* action button (Follow / Join / Joined / View) */
+.sr-act { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 15px; border-radius: 100px; border: none;
+  background: var(--primary); color: var(--on-primary); font: 800 13px var(--font); cursor: pointer; white-space: nowrap; }
+.sr-act:active { transform: scale(.96); }
+.sr-act.on { background: var(--surface); color: var(--text-secondary); border: 1.5px solid var(--border); }
+.sr-act.ghost { background: var(--surface-alt); color: var(--text-primary); }
+
+/* ── empty state: recent + suggested ── */
+.sr-sec { padding: 14px 0 4px; }
+.sr-sh { display: flex; align-items: center; gap: 7px; padding: 0 16px 6px; font: 900 14px var(--font); color: var(--text-primary); }
+.sr-sh .bz-ico { color: var(--text-secondary); }
+.sr-sh .lnk { margin-left: auto; background: none; border: none; font: 800 13px var(--font); color: var(--primary); cursor: pointer; }
+.sr-rec { display: flex; align-items: center; gap: 12px; padding: 11px 16px; cursor: pointer; }
+.sr-rec:active { background: var(--surface-alt); }
+.sr-rec .ic { color: var(--text-tertiary); flex: none; display: grid; place-items: center; }
+.sr-rec .tx { flex: 1; font: 700 14.5px var(--font); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr-rec .rm { flex: none; color: var(--text-tertiary); display: grid; place-items: center; padding: 4px; }
+
+/* ── skeletons ── */
+.sr-sk { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+.sr-sk .c { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-alt); flex: none; animation: sr-pulse 1.3s ease-in-out infinite; }
+.sr-sk .t { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.sr-sk .t i { width: 55%; height: 12px; border-radius: 5px; background: var(--surface-alt); animation: sr-pulse 1.3s ease-in-out infinite; }
+.sr-sk .t b { width: 38%; height: 10px; border-radius: 5px; background: var(--surface-alt); animation: sr-pulse 1.3s ease-in-out infinite; }
+.sr-sk .p { width: 74px; height: 32px; border-radius: 100px; background: var(--surface-alt); flex: none; animation: sr-pulse 1.3s ease-in-out infinite; }
+@keyframes sr-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* ── no results ── */
+.sr-none { padding: 64px 32px; text-align: center; }
+.sr-none .ic { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--surface-alt); color: var(--text-tertiary); margin-bottom: 16px; }
+.sr-none .t { font: 900 17px var(--font); color: var(--text-primary); }
+.sr-none .d { margin-top: 8px; font: 600 13.5px var(--font); color: var(--text-tertiary); line-height: 1.5; }
+.sr-none .d b { color: var(--text-secondary); }

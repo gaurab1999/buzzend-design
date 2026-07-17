@@ -14,15 +14,21 @@ window.Community = (function () {
 
   const FEED = [
     { p: 5, kind: "challenge", ch: "30-Day Squats", ex: "squat", reps: 150, cap: "New squat PR — 150 reps today!", likes: 142, views: 1820, t: "2h", assets: [V("squat")] },
+    // competition post — a pose attempt others can "beat" (inline leaderboard). See post-leaderboard.html
+    { p: 3, kind: "competition", ex: "squat", reps: 18, cap: "18 clean squats in 30s — who's beating this?", likes: 76, views: 1440, t: "2h",
+      assets: [V("squat")], comp: { status: { live: true, txt: "2d left" }, board: [{ pi: 1, score: 22 }, { pi: 3, score: 18 }, { pi: 0, score: 15 }, { pi: 4, score: 12 }] } },
     { p: 6, kind: "photo", cap: "Morning trail run. The views were unreal.", likes: 185, views: 2400, t: "5h", assets: [IM(0), IM(1), IM(2), IM(3), IM(4)] },
     { p: 1, kind: "workout", ex: "pushup", reps: 96, cap: "Crushed 96 push-ups in one set.", likes: 96, views: 1240, t: "3h", assets: [V("pushup"), IM(3)] },
+    // competition post — no challengers yet ("Be first")
+    { p: 6, kind: "competition", ex: "jumping", reps: 40, cap: "Jumping-jack sprint — first to beat 40 wins!", likes: 24, views: 410, t: "4h",
+      assets: [V("jumping")], comp: { status: { live: true, txt: "5h left" }, board: [{ pi: 6, score: 40 }] } },
     { p: 3, kind: "challenge", ch: "Jumping Jack Blast", ex: "jumping", reps: 140, cap: "Cardio kickstart done!", likes: 88, views: 990, t: "6h", assets: [V("jumping")] },
     { p: 4, kind: "photo", cap: "Post-workout glow. Rest day tomorrow.", likes: 64, views: 720, t: "8h", assets: [IM(4), IM(0), IM(2)] },
     { p: 2, kind: "workout", ex: "lunge", reps: 64, cap: "Leg day lunges, slow and controlled.", likes: 51, views: 610, t: "1d", assets: [V("lunge"), IM(1), IM(2), IM(0)] },
   ];
   FEED.forEach((p) => { p.liked = false; });   // local like state
   const person = (i) => S.PEOPLE[i] || S.PEOPLE[1];
-  const actionText = (post) => post.kind === "challenge" ? `recorded ${fmt(post.reps)} ${EX[post.ex].toLowerCase()}` : post.kind === "workout" ? `posted a workout · ${fmt(post.reps)} reps` : `posted ${post.assets.length} ${post.assets.length > 1 ? "photos" : "photo"}`;
+  const actionText = (post) => post.kind === "competition" ? `started a ${EX[post.ex].toLowerCase()} challenge · beat ${fmt(post.reps)}` : post.kind === "challenge" ? `recorded ${fmt(post.reps)} ${EX[post.ex].toLowerCase()}` : post.kind === "workout" ? `posted a workout · ${fmt(post.reps)} reps` : `posted ${post.assets.length} ${post.assets.length > 1 ? "photos" : "photo"}`;
 
   let cur = { v: "imm", tab: "For you" }, root, _vEl = null;
 
@@ -54,6 +60,9 @@ window.Community = (function () {
   }
   function openProfile(name, ev) { if (ev) ev.stopPropagation(); if (guard()) return; location.href = "user-profile.html?name=" + encodeURIComponent(name); }
   function openChallenge(ev) { if (ev) ev.stopPropagation(); if (guard()) return; location.href = "challenge-detail.html?role=viewer"; }
+  // competition posts → the full Post/Feed leaderboard (post-leaderboard.html)
+  function openComp(i, ev) { if (ev) ev.stopPropagation(); if (guard()) return; location.href = "post-leaderboard.html?v=leaderboard"; }
+  function beatComp(i, ev) { if (ev) ev.stopPropagation(); if (guard()) return; location.href = "post-leaderboard.html?v=beatit"; }
 
   /* ── shared like controls (data-* let syncLike update every instance) ── */
   const likeH = (i) => `<span class="cf-a"><span class="like${FEED[i].liked ? " liked" : ""}" data-like="${i}" onclick="Community.toggleLike(${i},event)">${I("heart", 17)}</span><b class="cf-cnt" data-likecount="${i}" onclick="Community.likers(${i},event)">${fmt(FEED[i].likes)}</b></span>`;
@@ -94,9 +103,34 @@ window.Community = (function () {
   const immersive = () => `<div class="cf-imm">${FEED.map(immersivePost).join("")}</div>`;
 
   // ── Cards (same post design as the Challenge Detail posts section) ──
+  const compStatus = (post) => {
+    const s = post.comp && post.comp.status; if (!s) return "";
+    return s.ended ? `<span class="cf-cstatus ended">Ended</span>` : `<span class="cf-cstatus live"><span class="d"></span>Live · ${s.txt}</span>`;
+  };
   function cardBadges(post) {
     return (post.reps ? `<span class="cf-cbadge rep"><span class="z">${I("zap", 12)}</span>${fmt(post.reps)} ${EX[post.ex].toLowerCase()}</span>` : "")
-      + (post.ch ? `<span class="cf-cchip cf-chlink" onclick="Community.openChallenge(event)">${I(EXI[post.ex], 12)} ${post.ch}</span>` : "");
+      + (post.ch ? `<span class="cf-cchip cf-chlink" onclick="Community.openChallenge(event)">${I(EXI[post.ex], 12)} ${post.ch}</span>` : "")
+      + compStatus(post);
+  }
+
+  /* competition strip — inline leaderboard (top-3 · who's competing · Beat-it CTA).
+     Sits between the media and the actions row; taps open the full leaderboard. */
+  function compStrip(post, i) {
+    const board = post.comp.board.map((b) => ({ u: person(b.pi), score: b.score, owner: b.pi === post.p }))
+      .sort((a, b) => b.score - a.score).map((r, k) => ({ ...r, rank: k + 1 }));
+    const challengers = board.filter((r) => !r.owner), me = board.find((r) => r.u.me);
+    const empty = challengers.length === 0, top = board.slice(0, 3);
+    const ownerScore = (board.find((r) => r.owner) || board[0]).score;
+    const row = (r) => `<div class="cf-lbr${r.rank === 1 ? " top" : ""}">
+      <span class="cf-lbrk r${r.rank}">${r.rank}</span>
+      <span class="av" style="background-image:${grad(r.u.av)}"></span>
+      <span class="nm">${r.u.me ? "You" : r.u.name.split(" ")[0]}</span>
+      <span class="sc">${fmt(r.score)}<small>reps</small></span></div>`;
+    const head = `<div class="cf-lbh">${I("trophy", 15)}<span class="tt">${EX[post.ex]} Challenge</span>
+      <span class="tag${empty ? " hot" : ""}">${empty ? "Be first" : challengers.length + " competing"}</span>
+      <span class="right">${me ? `<span class="you">You #${me.rank}</span>` : ""}${I("chevron", 18)}</span></div>`;
+    const cta = `<button class="cf-lbcta" onclick="Community.beatComp(${i},event)">${I("target", 15)} ${empty ? "Be #1 — beat " + fmt(ownerScore) : "Beat it"}</button>`;
+    return `<div class="cf-lb" onclick="Community.openComp(${i},event)">${head}<div class="cf-lbboard">${top.map(row).join("")}</div>${cta}</div>`;
   }
   // Facebook-style mosaic: 2 → cols · 3 → 1 big + 2 · 4 → 2×2 · 5+ → 2 top + 3 bottom, "+N"
   function fbGrid(post, i) {
@@ -108,7 +142,8 @@ window.Community = (function () {
     }).join("");
     return `<div class="cf-gridmedia n${show}" onclick="Community.open(${i})">${tiles}${cardBadges(post)}</div>`;
   }
-  function subHtml(post) {
+  function subHtml(post, i) {
+    if (post.kind === "competition") return `${post.t} ago · <a class="cf-chlink" onclick="Community.openComp(${i},event)">${I(EXI[post.ex], 12)} ${EX[post.ex]} Challenge</a>`;
     if (post.ch) return `${post.t} ago · ${chLink(post, true)}`;
     return `${post.t} ago · ${post.reps ? EX[post.ex] : post.assets.length + " " + (post.assets.length > 1 ? "photos" : "photo")}`;
   }
@@ -120,9 +155,10 @@ window.Community = (function () {
     return `<div class="cf-card">
       <div class="cf-card-h">
         <div class="av" style="background-image:${grad(pe.av)}" onclick="Community.openProfile('${pe.name}',event)"></div>
-        <div class="who" onclick="Community.openProfile('${pe.name}',event)"><div class="nm"><b>${pe.name}</b></div><div class="t">${subHtml(post)}</div></div>
+        <div class="who" onclick="Community.openProfile('${pe.name}',event)"><div class="nm"><b>${pe.name}</b></div><div class="t">${subHtml(post, i)}</div></div>
         <button class="mm" onclick="Community.postMenu(${i})">${I("more", 18)}</button></div>
       ${media}
+      ${post.kind === "competition" ? compStrip(post, i) : ""}
       <div class="cf-card-a">
         ${likeH(i)}
         <span class="cf-a" onclick="Community.viewers(${i},event)">${I("eye", 17)} ${fmt(post.views)}</span>
@@ -293,5 +329,5 @@ window.Community = (function () {
   function setTab(t) { cur.tab = t; render(); }
   function share() { Buzzend.alert({ icon: "share", title: "Share post", message: "Send this to friends or your story." }); }
   function start(mountEl, v) { root = mountEl; cur.v = v || "imm"; cur.tab = "For you"; render(); }
-  return { start, render, homeFeed, setTab, open, closeViewer, share, postMenu, reportPost, _close, likers, viewers, toggleLike, openProfile, openChallenge };
+  return { start, render, homeFeed, setTab, open, closeViewer, share, postMenu, reportPost, _close, likers, viewers, toggleLike, openProfile, openChallenge, openComp, beatComp };
 })();
