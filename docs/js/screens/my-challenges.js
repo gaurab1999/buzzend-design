@@ -1,11 +1,13 @@
 /* Active challenges · See all — "Your challenges". Reuses the home ring-card
-   design (chalx) in a full vertical list, grouped Active / Upcoming / Completed.
-   Reads window.Social. Tapping a card opens the challenge detail. */
+   design (chalx) in a full vertical list, grouped Active / Upcoming / Completed,
+   with a name search. Source-aware: from Home (default) the Completed group is
+   hidden; from Profile (?from=profile) Completed is shown. Reads window.Social. */
 window.MyCh = (function () {
   const I = (n, s) => window.Icons.svg(n, s);
   const S = window.Social, fmt = S.fmt;
   const exMeta = (k) => S.ACT.find((a) => a.key === k) || S.ACT[1];
-  let root;
+  let root, from = "home", q = "";
+  const matches = (c) => !q || c.n.toLowerCase().includes(q.toLowerCase());
 
   // same ring markup as Home (HomeData.ring)
   function ring(o) {
@@ -51,11 +53,16 @@ window.MyCh = (function () {
 
   function render() {
     const mine = S.CHALLENGES.filter((c) => c.joined);
-    const active = mine.filter((c) => c.status === "active");
-    const upcoming = mine.filter((c) => c.status === "upcoming");
-    const ended = mine.filter((c) => c.status === "ended");
+    const showCompleted = from === "profile";
+    const filt = mine.filter(matches);
+    const active = filt.filter((c) => c.status === "active");
+    const upcoming = filt.filter((c) => c.status === "upcoming");
+    const ended = filt.filter((c) => c.status === "ended");
 
-    document.getElementById("mc-count").textContent = mine.length;
+    const countEl = document.getElementById("mc-count");
+    if (countEl) countEl.textContent = mine.length;
+    const qx = document.getElementById("mc-qx");
+    if (qx) qx.style.display = q ? "grid" : "none";
 
     if (!mine.length) {
       root.innerHTML = `<div class="mc-empty"><div class="ic">${I("trophy", 34)}</div>
@@ -64,18 +71,35 @@ window.MyCh = (function () {
         <button class="btn btn-primary" onclick="location.href='discover.html'">Browse challenges</button></div>`;
       return;
     }
+
+    const shown = active.length + upcoming.length + (showCompleted ? ended.length : 0);
+    if (q && !shown) {
+      root.innerHTML = `<div class="mc-body"><div class="mc-empty" style="padding:52px 30px">
+        <div class="ic">${I("search", 30)}</div><div class="t">No results</div>
+        <div class="d">No challenges match “${q}”.</div></div></div>`;
+      window.Icons.init(root);
+      return;
+    }
+
     root.innerHTML = `<div class="mc-body">
       ${section("Active", active)}
       ${section("Upcoming", upcoming)}
-      ${section("Completed", ended)}
-      <div class="mc-browse" onclick="location.href='discover.html'">
+      ${showCompleted ? section("Completed", ended) : ""}
+      ${q ? "" : `<div class="mc-browse" onclick="location.href='discover.html'">
         <div class="ic">${I("search", 22)}</div>
         <div><b>Discover more challenges</b><span>Find new goals and friends to compete with</span></div>
         <span class="go">${I("chevron", 20)}</span>
-      </div></div>`;
+      </div>`}</div>`;
     window.Icons.init(root);
   }
 
-  function start(mountEl) { root = mountEl; render(); }
-  return { start, render };
+  function search(v) { q = (v || "").trim(); render(); }
+  function clearQ() { q = ""; const el = document.getElementById("mc-q"); if (el) { el.value = ""; el.focus(); } render(); }
+
+  function start(mountEl) {
+    root = mountEl;
+    from = new URLSearchParams(location.search).get("from") === "profile" ? "profile" : "home";
+    render();
+  }
+  return { start, render, search, clearQ };
 })();

@@ -21,9 +21,14 @@
     <div class="screen">
       <div class="statusbar"><span>9:41</span><span>5G&nbsp;&nbsp;·&nbsp;&nbsp;100%</span></div>
       <div class="mc-top">
-        <button class="mc-back" onclick="location.href='home-v7.html'"><i data-icon="back" data-size="22"></i></button>
+        <button class="mc-back" onclick="history.length>1?history.back():location.href='home-v7.html'"><i data-icon="back" data-size="22"></i></button>
         <div class="mc-title">Your challenges</div>
         <span class="mc-count" id="mc-count">0</span>
+      </div>
+      <div class="mc-search">
+        <i data-icon="search" data-size="18"></i>
+        <input id="mc-q" type="text" placeholder="Search for challenge name" autocomplete="off" spellcheck="false" oninput="MyCh.search(this.value)" />
+        <button class="mc-qx" id="mc-qx" onclick="MyCh.clearQ()"><i data-icon="x" data-size="14"></i></button>
       </div>
       <div class="scroll" id="content" style="padding:0"></div>
     </div>
@@ -35,7 +40,7 @@
   <script src="../../js/screens/my-challenges.js"></script>
   <script src="../../js/app.js"></script>
   <script>
-    window.Icons.init(document.querySelector(".mc-top"));
+    window.Icons.init(document.querySelector(".screen"));
     MyCh.start(document.getElementById("content"));
   </script>
 </body>

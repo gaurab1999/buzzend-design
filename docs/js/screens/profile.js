@@ -32,8 +32,24 @@ window.Profile = (function () {
   }
   function ctxFor(scenario) { return scenario === "me" ? selfProfile() : otherProfile(scenario); }
 
-  let host, st = { v: "1", scenario: "me", tab: "stats", period: "week", ctx: null };
+  let host, st = { v: "1", scenario: "me", tab: "stats", period: "week", pOff: 0, ctx: null };
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
+
+  /* Stats palette — mirrors the native ProfileStatsSection (WorkoutType.color)
+     exactly, incl. native labels + native LEGEND_ORDER (Steps · Squats · Pushups
+     · Situps · Jumping Jacks · Lunges). Also the vertical stacking order. */
+  const STAT_TYPES = [
+    { key: "steps",   n: "Steps",         i: "footprints", c: "#34D094" },
+    { key: "squat",   n: "Squats",        i: "squat",      c: "#C56DE2" },
+    { key: "pushup",  n: "Pushups",       i: "pushup",     c: "#F5A623" },
+    { key: "situp",   n: "Situps",        i: "situp",      c: "#6466E3" },
+    { key: "jumping", n: "Jumping Jacks", i: "jumping",    c: "#E670B7" },
+    { key: "lunge",   n: "Lunges",        i: "lunge",      c: "#E74F5E" },
+  ];
+  const REP_KEYS = ["squat", "pushup", "situp", "jumping", "lunge"];
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MON_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   /* ── shared bits ── */
   const presence = (c) => c.online ? `<span class="pf-on"><i></i>Online</span>` : `<span class="pf-off">Last seen ${c.lastSeen || "recently"}</span>`;
@@ -73,39 +89,197 @@ window.Profile = (function () {
   function tabsBar() { const t = (id, l) => `<button class="pf-tab2 ${st.tab === id ? "on" : ""}" onclick="Profile.setTab('${id}')">${l}</button>`; return `<div class="pf-tabs2">${t("stats", "Stats")}${t("posts", "Posts")}${t("challenges", "Challenges")}</div>`; }
   function tabContent(c) { if (c.blocked) return blockedBody(c); return st.tab === "posts" ? postsTab(c) : st.tab === "challenges" ? challengesTab(c) : statsTab(c); }
 
-  /* ── Stats tab: Day/Week/Month workout chart ── */
-  function periodData(period) {
-    const n = period === "day" ? 1 : period === "week" ? 7 : 14, days = [];
-    for (let i = 0; i < n; i++) {
-      const w = 0.55 + 0.45 * Math.sin(i * 1.3 + 1), d = { steps: Math.round(900 + 1400 * w) };
-      EX.forEach((e, j) => { d[e.key] = (i + j) % 3 === 0 ? Math.round((10 + 70 * w) * (e.key === "lunge" ? 0.4 : 1)) : (j < 2 ? Math.round(8 + 40 * w) : 0); });
-      days.push(d);
-    }
-    return { n, days, label: period === "day" ? "Today" : period === "week" ? "This week" : "Last 14 days" };
+  /* ── Stats tab: Day/Week/Month workout chart — matched 1:1 to the REAL native
+     ProfileStatsSection captured on-device (emulator, 2026-07-17):
+       · Day/Week/Month toggle · ‹prev/next› navigator + inline "Today" jump-back
+       · WEEK title uses date numbers, MONDAY-start weeks (e.g. "13 Jul – 19 Jul")
+       · each stacked bar prints its value INSIDE the segment — Month=none · Week=
+         value ("250") · Day + tap-sheet=value+name ("250 Pushups")
+       · calories = a SOLID accent tile, centred ("Calories burned / 182 🔥")
+       · tap-a-bar → sheet: date · legend · tall bar LEFT / calories RIGHT (tight gap)
+       · contextual calendar: Day=day grid · Week=week-row (Mon-first) · Month=month+year
+       · data-backed empty state. Steps abbreviate (2.5K); reps are plain ints. */
+  const CHART_H = 210, DAYMS = 86400000;
+  const fmtC = (v) => (v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K" : "" + v);
+  const repsOf = (d) => REP_KEYS.reduce((a, k) => a + d[k], 0);
+  const calOf = (d) => Math.round(d.steps * 0.02 + repsOf(d) * 0.34);
+  const units = (d) => d.steps + repsOf(d); // raw stack — matches native (no scaling)
+
+  // deterministic per-day synthetic data (stable across navigation). Active days carry
+  // ALL SIX types (steps + 5 reps) with substantial, comparable magnitudes so every
+  // segment — and its value label — stays visible in one day. Steps kept moderate so it
+  // doesn't dwarf the reps (keeps bars balanced across the week).
+  const REP_BASE = { squat: 170, pushup: 250, situp: 160, jumping: 230, lunge: 200 };
+  function genDay(dt) {
+    const seed = dt.getFullYear() * 372 + (dt.getMonth() + 1) * 31 + dt.getDate();
+    if (seed % 7 === 3 || seed % 11 === 5) return { steps: 0, squat: 0, pushup: 0, situp: 0, jumping: 0, lunge: 0 }; // rest day
+    const d = { steps: Math.round(380 + 320 * Math.abs(Math.sin(seed * 0.9 + 1))) };
+    REP_KEYS.forEach((k, j) => { d[k] = Math.round(REP_BASE[k] * (0.8 + 0.35 * Math.abs(Math.sin(seed * (j + 2))))); });
+    return d;
   }
-  const CHART_H = 150;
+  function today0() { const t = new Date(); t.setHours(0, 0, 0, 0); return t; }
+  function mondayOf(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+  function periodAnchor(P, off) {
+    const t = today0();
+    if (P === "day") { const d = new Date(t); d.setDate(d.getDate() + off); return d; }
+    if (P === "week") { const m = mondayOf(t); m.setDate(m.getDate() + off * 7); return m; } // Monday start (native)
+    return new Date(t.getFullYear(), t.getMonth() + off, 1);
+  }
+  function periodDates(P, a) {
+    if (P === "day") return [new Date(a)];
+    const n = P === "week" ? 7 : new Date(a.getFullYear(), a.getMonth() + 1, 0).getDate();
+    return Array.from({ length: n }, (_, i) => { const d = new Date(a); d.setDate(a.getDate() + i); return d; });
+  }
+  function periodTitle(P, a) {
+    if (P === "day") return `${DOW[a.getDay()]}, ${a.getDate()} ${MON[a.getMonth()]}`;
+    if (P === "week") { const e = new Date(a); e.setDate(a.getDate() + 6); return `${a.getDate()} ${MON[a.getMonth()]} – ${e.getDate()} ${MON[e.getMonth()]}`; }
+    return `${MON_FULL[a.getMonth()]} ${a.getFullYear()}`;
+  }
+
+  // legend: colour swatch + label of the given types (native has no emoji)
+  const legendEl = (types) => `<div class="pf-legend">${(types || STAT_TYPES).map((t) => `<span class="pf-lg"><i style="background:${t.c}"></i>${t.n}</span>`).join("")}</div>`;
+  // solid accent "Calories burned" tile (centred)
+  const caloriesTile = (d, cls) => `<div class="pf-cal2${cls ? " " + cls : ""}"><span class="k">Calories burned</span><b>${fmtC(calOf(d))} 🔥</b></div>`;
+  // one stacked bar → each present segment sized by raw/max*H, labelled per `mode`
+  function stackBar(d, max, H, mode) {
+    if (!units(d)) return "";
+    return STAT_TYPES.map((t) => {
+      const raw = t.key === "steps" ? d.steps : d[t.key];
+      if (!raw) return "";
+      const h = (raw / max) * H;
+      const txt = mode === "count" ? fmtC(raw) : mode === "full" ? `${fmtC(raw)} ${t.n}` : "";
+      const show = txt && h >= (mode === "full" ? 14 : 10);
+      return `<div class="pf-seg-fill" style="height:${h.toFixed(1)}px;background:${t.c}">${show ? `<span>${txt}</span>` : ""}</div>`;
+    }).join("");
+  }
+
   function statsTab(c) {
     const seg = (p) => `<button class="${st.period === p ? "on" : ""}" onclick="Profile.setPeriod('${p}')">${cap(p)}</button>`;
     const toggle = `<div class="pf-seg">${seg("day") + seg("week") + seg("month")}</div>`;
     if (!c.active) return `<div class="pf-pad">${toggle}${empty("activity", "No workouts yet", c.self ? "Start an AI workout — your reps are counted automatically." : "This user hasn't logged any workouts.")}</div>`;
-    const { n, days, label } = periodData(st.period);
-    const norm = (d) => ({ steps: d.steps / 18, squat: d.squat, pushup: d.pushup, situp: d.situp, jumping: d.jumping, lunge: d.lunge });
-    const total = (d) => ACT.reduce((a, k) => a + norm(d)[k.key], 0);
-    const max = Math.max.apply(null, days.map(total).concat(1));
-    const gap = n > 10 ? "4px" : "8px";
-    const labels = n === 1 ? ["Today"] : n === 7 ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : Array.from({ length: n }, (_, i) => "" + (i + 1));
-    const bars = days.map((d) => {
-      const t = total(d), bh = (t / max) * CHART_H;
-      const segs = ACT.map((a) => { const part = norm(d)[a.key]; if (!part) return ""; return `<div class="pf-seg-fill" style="height:${((part / t) * bh).toFixed(1)}px;background:${a.c}"></div>`; }).join("");
-      return `<div class="pf-bar">${segs}</div>`;
+
+    const P = st.period, off = st.pOff | 0, atNow = off === 0;
+    const anchor = periodAnchor(P, off);
+    const dates = periodDates(P, anchor);
+    const data = dates.map(genDay);
+    const emptyPeriod = off <= -4 || data.every((d) => !units(d)); // no logs this far back
+
+    const nav = `<div class="pf-chnav">
+      <button class="pf-chstep" onclick="Profile.statStep(-1)" title="Previous">${I("chevron", 18)}</button>
+      <div class="pf-chttl"><span>${periodTitle(P, anchor)}</span>${atNow ? "" : `<button class="pf-today" onclick="Profile.statToday()">Today</button>`}</div>
+      <button class="pf-chstep next" ${atNow ? "disabled" : ""} onclick="Profile.statStep(1)" title="Next">${I("chevron", 18)}</button>
+      <button class="pf-chcal" onclick="Profile.openCalendar()" title="Pick a date">${I("calendar", 17)}</button></div>`;
+
+    if (emptyPeriod)
+      return `<div class="pf-pad">${toggle}<div class="pf-card">${nav}
+        <div class="pf-chempty"><div class="ec">${I("activity", 26)}</div><div class="et">No workouts yet</div><div class="ed">No activity was logged for this period.</div></div></div></div>`;
+
+    const max = Math.max.apply(null, data.map(units).concat(1));
+
+    /* ── Day view: centred calories tile + single wide bar (value + name inside) ── */
+    if (P === "day") {
+      const d = data[0], iso = dates[0].getTime(), dmax = units(d) || 1;
+      return `<div class="pf-pad">${toggle}
+        <div class="pf-card">${nav}
+          ${caloriesTile(d)}
+          <div class="pf-bars dayone" style="height:${CHART_H + 90}px"><div class="pf-bar tap" onclick="Profile.openDaySheet(${iso})">${stackBar(d, dmax, CHART_H + 84, "full")}</div></div>
+          ${legendEl()}</div></div>`;
+    }
+
+    /* ── Week / Month view: one stacked bar per day (Week=value labels, Month=none) ── */
+    const isWeek = P === "week", gap = isWeek ? "10px" : "3px", mode = isWeek ? "count" : "none";
+    const bars = data.map((d, i) => `<div class="pf-bar tap" onclick="Profile.openDaySheet(${dates[i].getTime()})">${stackBar(d, max, CHART_H, mode)}</div>`).join("");
+    const xl = dates.map((dt) => {
+      const show = isWeek ? dt.getDate() : (dt.getDate() === 1 || dt.getDate() % 5 === 0 ? dt.getDate() : "");
+      return `<span>${show}</span>`;
     }).join("");
-    const legend = ACT.map((a) => `<span class="pf-lg"><i style="background:${a.c}"></i>${a.n}</span>`).join("");
     return `<div class="pf-pad">${toggle}
-      <div class="pf-card"><div class="pf-cardh"><span>${label}</span></div>
-        <div class="pf-bars${n === 1 ? " one" : ""}" style="--bg:${gap};height:${CHART_H + 6}px">${bars}</div>
-        <div class="pf-xl" style="--bg:${gap}">${labels.map((l) => `<span>${l}</span>`).join("")}</div>
-        <div class="pf-legend">${legend}</div></div></div>`;
+      <div class="pf-card">${nav}
+        <div class="pf-bars${isWeek ? "" : " dense"}" style="--bg:${gap};height:${CHART_H + 6}px">${bars}</div>
+        <div class="pf-xl" style="--bg:${gap}">${xl}</div>
+        ${legendEl()}</div></div>`;
   }
+
+  /* Day-breakdown sheet (tap a bar): date title · legend · tall bar LEFT / calories RIGHT.
+     Tight legend→bar gap (design feedback 2026-07-17), mirrored in native code too. */
+  function openDaySheet(ms) {
+    const dt = new Date(ms), d = genDay(dt), dmax = units(d) || 1, H = 240;
+    const present = STAT_TYPES.filter((t) => (t.key === "steps" ? d.steps : d[t.key]));
+    const legend = present.length
+      ? `<div class="pf-legend sheet">${present.map((t) => `<span class="pf-lg"><i style="background:${t.c}"></i>${t.n}</span>`).join("")}</div>`
+      : `<div class="pf-legend sheet"><span class="pf-lg">Rest day — no activity</span></div>`;
+    const html = `<div class="pf-daysheet">${legend}
+      <div class="pf-ds-row">
+        <div class="pf-bars one sheetbar" style="height:${H + 6}px"><div class="pf-bar">${stackBar(d, dmax, H, "full")}</div></div>
+        ${caloriesTile(d, "side")}</div></div>`;
+    Buzzend.sheet({ closeBtn: false, title: `${DOW[dt.getDay()]}, ${dt.getDate()} ${MON[dt.getMonth()]}`, html });
+  }
+
+  /* Contextual calendar picker — Day/Week/Month. Native parity: NO sheet title,
+     plain day numbers (no activity dots), tap SELECTS (highlights only), and an
+     Apply button commits the selection. */
+  let _calBase = null, _calSel = null; // shown month · pending selection
+  function openCalendar() {
+    const P = st.period, a = periodAnchor(P, st.pOff | 0);
+    if (P === "month") { _calBase = new Date(a.getFullYear(), 0, 1); _calSel = { type: "month", y: a.getFullYear(), m: a.getMonth() }; return renderMonthPicker(); }
+    _calBase = new Date(a.getFullYear(), a.getMonth(), 1);
+    _calSel = P === "week" ? { type: "week", mon: +mondayOf(a) } : { type: "day", ms: +a };
+    renderDayPicker();
+  }
+  const applyBtn = () => `<button class="pf-cal-apply" onclick="Profile.calApply()">Apply</button>`;
+  function renderDayPicker() {
+    const base = _calBase, tnow = today0(), weekMode = st.period === "week";
+    const firstMi = (new Date(base.getFullYear(), base.getMonth(), 1).getDay() + 6) % 7;
+    const nDays = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+    let cells = "";
+    for (let i = 0; i < firstMi; i++) cells += `<span class="pf-cd empty"></span>`;
+    for (let day = 1; day <= nDays; day++) {
+      const dt = new Date(base.getFullYear(), base.getMonth(), day), future = dt > tnow;
+      const sel = !future && (weekMode ? +mondayOf(dt) === _calSel.mon : +dt === _calSel.ms);
+      cells += `<button class="pf-cd${future ? " dis" : ""}${sel ? " sel" : ""}" data-ms="${+dt}" ${future ? "disabled" : `onclick="Profile.calPick(this,${+dt})"`}>${day}</button>`;
+    }
+    const nextDis = base.getFullYear() >= tnow.getFullYear() && base.getMonth() >= tnow.getMonth();
+    Buzzend.sheet({ closeBtn: false, html: `<div class="pf-calpick">
+      <div class="pf-cp-nav"><button onclick="Profile.calNav(-1)">${I("chevron", 16)}</button>
+        <div><span class="yr">${base.getFullYear()}</span><b>${MON[base.getMonth()]}</b></div>
+        <button class="nx" ${nextDis ? "disabled" : ""} onclick="Profile.calNav(1)">${I("chevron", 16)}</button></div>
+      <div class="pf-cp-dow">${["M","T","W","T","F","S","S"].map((x) => `<span>${x}</span>`).join("")}</div>
+      <div class="pf-cp-grid">${cells}</div>${applyBtn()}</div>` });
+  }
+  function renderMonthPicker() {
+    const y = _calBase.getFullYear(), tnow = today0();
+    const cells = MON.map((m, i) => {
+      const future = new Date(y, i, 1) > new Date(tnow.getFullYear(), tnow.getMonth(), 1);
+      const sel = _calSel.type === "month" && y === _calSel.y && i === _calSel.m;
+      return `<button class="pf-mo${sel ? " sel" : ""}${future ? " dis" : ""}" data-m="${i}" ${future ? "disabled" : `onclick="Profile.calPickMonth(this,${y},${i})"`}>${m}</button>`;
+    }).join("");
+    Buzzend.sheet({ closeBtn: false, html: `<div class="pf-calpick">
+      <div class="pf-cp-nav"><button onclick="Profile.calYearNav(-1)">${I("chevron", 16)}</button><b>${y}</b>
+        <button class="nx" ${y >= tnow.getFullYear() ? "disabled" : ""} onclick="Profile.calYearNav(1)">${I("chevron", 16)}</button></div>
+      <div class="pf-mo-grid">${cells}</div>${applyBtn()}</div>` });
+  }
+  function calHighlight(el) {
+    const box = el.closest(".bz-dialog"); if (!box) return;
+    box.querySelectorAll(".pf-cd.sel,.pf-mo.sel").forEach((x) => x.classList.remove("sel"));
+    if (_calSel.type === "month") { const b = box.querySelector(`.pf-mo[data-m="${_calSel.m}"]`); if (b) b.classList.add("sel"); return; }
+    box.querySelectorAll(".pf-cd[data-ms]").forEach((x) => {
+      const dt = new Date(+x.dataset.ms);
+      if (_calSel.type === "week" ? +mondayOf(dt) === _calSel.mon : +dt === _calSel.ms) x.classList.add("sel");
+    });
+  }
+  function calPick(el, ms) { _calSel = st.period === "week" ? { type: "week", mon: +mondayOf(new Date(ms)) } : { type: "day", ms: ms }; calHighlight(el); }
+  function calPickMonth(el, y, m) { _calSel = { type: "month", y: y, m: m }; calHighlight(el); }
+  function calNav(dir) { _calBase = new Date(_calBase.getFullYear(), _calBase.getMonth() + dir, 1); _close(); renderDayPicker(); }
+  function calYearNav(dir) { _calBase = new Date(_calBase.getFullYear() + dir, 0, 1); _close(); renderMonthPicker(); }
+  function calApply() {
+    _close(); const s = _calSel, t = today0();
+    if (s.type === "day") { st.period = "day"; st.pOff = Math.round((s.ms - +t) / DAYMS); }
+    else if (s.type === "week") { st.period = "week"; st.pOff = Math.round((s.mon - +mondayOf(t)) / (7 * DAYMS)); }
+    else { st.period = "month"; st.pOff = (s.y - t.getFullYear()) * 12 + (s.m - t.getMonth()); }
+    render();
+  }
+  function statStep(dir) { const n = (st.pOff | 0) + dir; if (n <= 0) { st.pOff = n; render(); } }
+  function statToday() { st.pOff = 0; render(); }
 
   /* ── Posts tab: grid + "No Posts Yet" + 60-day expiry note (others) ── */
   function postsTab(c) {
@@ -121,21 +295,29 @@ window.Profile = (function () {
       ${c.self ? "" : `<div class="pf-note">${I("clock", 12)} Posts expire after 60 days</div>`}</div>`;
   }
 
-  /* ── Challenges tab: Current + Completed ── */
+  /* ── Challenges tab: Active + Upcoming inline; the full list (which also holds
+     Completed) lives behind "See all" → my-challenges.html?from=profile. ── */
   function challengesTab(c) {
     if (c.challenges === 0) return empty("trophy", "No challenges yet", c.self ? "Join a challenge to compete with friends." : "This user hasn't joined any challenges.");
     const mine = S.CHALLENGES.filter((x) => x.joined);
-    const cur = mine.filter((x) => x.status !== "ended"), done = mine.filter((x) => x.status === "ended");
+    const active = mine.filter((x) => x.status === "active");
+    const upcoming = mine.filter((x) => x.status === "upcoming");
     const row = (x) => {
       const m = ACT.find((a) => a.key === x.ex) || ACT[1];
-      const pct = x.status === "ended" ? 100 : Math.min(100, Math.round((x.myReps / x.goal) * 100));
+      const up = x.status === "upcoming";
+      const pct = up ? 0 : Math.min(100, Math.round((x.myReps / x.goal) * 100));
+      const meta = up ? `Starts in ${x.startsIn} day${x.startsIn > 1 ? "s" : ""}` : `Day ${x.day} / ${x.days} · ${fmt(x.myReps)} reps`;
       return `<div class="pf-chl" onclick="location.href='challenge-detail.html?role=${c.self ? "member" : "viewer"}'">
         <div class="ci" style="color:${m.c};background:color-mix(in srgb,${m.c} 14%,transparent)">${I(m.i, 18)}</div>
-        <div class="cm"><div class="cn">${x.n}</div><div class="cd">${x.status === "ended" ? "Completed" : "Day " + x.day + " / " + x.days} · ${fmt(x.myReps)} reps</div>
-          <div class="cbar"><i style="width:${pct}%;background:${m.c}"></i></div></div></div>`;
+        <div class="cm"><div class="cn">${x.n}</div><div class="cd">${meta}</div>
+          <div class="cbar"><i style="width:${up ? 0 : Math.max(pct, 2)}%;background:${up ? "var(--text-tertiary)" : m.c}"></i></div></div></div>`;
     };
     const sec = (label, arr) => arr.length ? `<div class="pf-sublbl">${label}</div>${arr.map(row).join("")}` : "";
-    return `<div class="pf-pad">${sec("Current challenges", cur)}${sec("Completed", done)}</div>`;
+    const header = c.self ? `<div class="pf-chsec"><h3>Your challenges</h3><a class="pf-seeall" href="my-challenges.html?from=profile">See all ${I("chevron", 15)}</a></div>` : "";
+    const body = (active.length + upcoming.length)
+      ? sec("Active", active) + sec("Upcoming", upcoming)
+      : `<div class="pf-empty" style="padding:24px 20px"><div class="ec">${I("trophy", 26)}</div><div class="et">Nothing active right now</div><div class="ed">${c.self ? 'Your finished challenges are under "See all".' : "This user has no active or upcoming challenges."}</div></div>`;
+    return `<div class="pf-pad">${header}${body}</div>`;
   }
 
   const empty = (ic, t, d) => `<div class="pf-empty"><div class="ec">${I(ic, 30)}</div><div class="et">${t}</div><div class="ed">${d}</div></div>`;
@@ -178,8 +360,8 @@ window.Profile = (function () {
   /* ═══ render + actions ═══ */
   function variant() { const c = st.ctx; return st.v === "2" ? v2(c) : st.v === "3" ? v3(c) : v1(c); }
   function render() { host.innerHTML = variant(); window.Icons.init(host); host.scrollTop = 0; }
-  function setTab(t) { st.tab = t; render(); }
-  function setPeriod(p) { st.period = p; render(); }
+  function setTab(t) { st.tab = t; st.pOff = 0; render(); }
+  function setPeriod(p) { st.period = p; st.pOff = 0; render(); }
 
   function follow() {
     const c = st.ctx;
@@ -220,5 +402,5 @@ window.Profile = (function () {
   function setScenario(s) { st.scenario = s; st.tab = "stats"; st.ctx = ctxFor(s); render(); }
   function setV(v) { st.v = v; render(); }
 
-  return { start, setV, setScenario, setTab, setPeriod, follow, message, menu, block, report, deleteAccount, list, editProfile, _close, AVATARS, overrides };
+  return { start, setV, setScenario, setTab, setPeriod, statStep, statToday, openDaySheet, openCalendar, calPick, calPickMonth, calApply, calNav, calYearNav, follow, message, menu, block, report, deleteAccount, list, editProfile, _close, AVATARS, overrides };
 })();
