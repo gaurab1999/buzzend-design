@@ -13,22 +13,34 @@ window.Community = (function () {
   const V = (ex) => ({ type: "video", g: exG[ex] }), IM = (n) => ({ type: "image", g: IMG[n % IMG.length] });
 
   const FEED = [
-    { p: 5, kind: "challenge", ch: "30-Day Squats", ex: "squat", reps: 150, cap: "New squat PR — 150 reps today!", likes: 142, views: 1820, t: "2h", assets: [V("squat")] },
-    // competition post — a pose attempt others can "beat" (inline leaderboard). See post-leaderboard.html
-    { p: 3, kind: "competition", ex: "squat", reps: 18, cap: "18 clean squats in 30s — who's beating this?", likes: 76, views: 1440, t: "2h",
+    // competition (Beat-It) ORIGINAL posted by ME with no challengers yet → owner-viewing-own strip
+    // state ("No attempts yet" · "Set a new score" · no "You #1" chip). owner === poster (no "by").
+    { p: 0, kind: "competition", ex: "situp", reps: 20, cap: "20 sit-ups in 30s — first attempt, come beat it!", likes: 12, views: 260, t: "1h", owner: 0, general: true,
+      assets: [V("situp")], comp: { status: { live: true, txt: "6d left" }, board: [{ pi: 0, score: 20 }] } },
+    { p: 5, kind: "challenge", ch: "30-Day Squats", ex: "squat", reps: 150, cap: "New squat PR — 150 reps today!", likes: 142, views: 1820, t: "2h", general: true, assets: [V("squat")] },
+    // competition (Beat-It) ATTEMPT — poster ≠ owner, so line 2 attributes the ORIGINAL "by <owner>"
+    { p: 3, kind: "competition", ex: "squat", reps: 18, cap: "18 clean squats in 30s — who's beating this?", likes: 76, views: 1440, t: "2h", owner: 1, general: true,
       assets: [V("squat")], comp: { status: { live: true, txt: "2d left" }, board: [{ pi: 1, score: 22 }, { pi: 3, score: 18 }, { pi: 0, score: 15 }, { pi: 4, score: 12 }] } },
-    { p: 6, kind: "photo", cap: "Morning trail run. The views were unreal.", likes: 185, views: 2400, t: "5h", assets: [IM(0), IM(1), IM(2), IM(3), IM(4)] },
-    { p: 1, kind: "workout", ex: "pushup", reps: 96, cap: "Crushed 96 push-ups in one set.", likes: 96, views: 1240, t: "3h", assets: [V("pushup"), IM(3)] },
-    // competition post — no challengers yet ("Be first")
-    { p: 6, kind: "competition", ex: "jumping", reps: 40, cap: "Jumping-jack sprint — first to beat 40 wins!", likes: 24, views: 410, t: "4h",
+    { p: 6, kind: "photo", cap: "Morning trail run. The views were unreal.", likes: 185, views: 2400, t: "5h", general: true, assets: [IM(0), IM(1), IM(2), IM(3), IM(4)] },
+    { p: 1, kind: "workout", ex: "pushup", reps: 96, cap: "Crushed 96 push-ups in one set.", likes: 96, views: 1240, t: "3h", general: true, assets: [V("pushup"), IM(3)] },
+    // competition (Beat-It) ORIGINAL — poster IS the owner (no "by"), no challengers yet ("Be first")
+    { p: 6, kind: "competition", ex: "jumping", reps: 40, cap: "Jumping-jack sprint — first to beat 40 wins!", likes: 24, views: 410, t: "4h", owner: 6,
       assets: [V("jumping")], comp: { status: { live: true, txt: "5h left" }, board: [{ pi: 6, score: 40 }] } },
-    { p: 3, kind: "challenge", ch: "Jumping Jack Blast", ex: "jumping", reps: 140, cap: "Cardio kickstart done!", likes: 88, views: 990, t: "6h", assets: [V("jumping")] },
-    { p: 4, kind: "photo", cap: "Post-workout glow. Rest day tomorrow.", likes: 64, views: 720, t: "8h", assets: [IM(4), IM(0), IM(2)] },
-    { p: 2, kind: "workout", ex: "lunge", reps: 64, cap: "Leg day lunges, slow and controlled.", likes: 51, views: 610, t: "1d", assets: [V("lunge"), IM(1), IM(2), IM(0)] },
+    // multi-challenge post → line 2 shows "N Challenges" → the tagged-challenges sheet
+    { p: 3, kind: "challenge", chs: ["Jumping Jack Blast", "Cardio Kings", "Summer Shred"], ex: "jumping", reps: 140, cap: "Cardio kickstart done!", likes: 88, views: 990, t: "6h", general: true, assets: [V("jumping")] },
+    { p: 4, kind: "photo", cap: "Post-workout glow. Rest day tomorrow.", likes: 64, views: 720, t: "8h", general: true, assets: [IM(4), IM(0), IM(2)] },
+    { p: 2, kind: "workout", ex: "lunge", reps: 64, cap: "Leg day lunges, slow and controlled.", likes: 51, views: 610, t: "1d", general: true, assets: [V("lunge"), IM(1), IM(2), IM(0)] },
   ];
   FEED.forEach((p) => { p.liked = false; });   // local like state
   const person = (i) => S.PEOPLE[i] || S.PEOPLE[1];
-  const actionText = (post) => post.kind === "competition" ? `started a ${EX[post.ex].toLowerCase()} challenge · beat ${fmt(post.reps)}` : post.kind === "challenge" ? `recorded ${fmt(post.reps)} ${EX[post.ex].toLowerCase()}` : post.kind === "workout" ? `posted a workout · ${fmt(post.reps)} reps` : `posted ${post.assets.length} ${post.assets.length > 1 ? "photos" : "photo"}`;
+  // owner of a competition (Beat-It) post = the ORIGINAL attempt's author; defaults to the poster.
+  const ownerOf = (post) => (post.owner != null ? person(post.owner) : person(post.p));
+  // placement challenge names tagged on a post: multiple via `chs`, single via `ch`.
+  const challengesOf = (post) => (post.chs ? post.chs : post.ch ? [post.ch] : []);
+  const actionText = (post) => {
+    if (post.kind === "competition") { const ow = ownerOf(post); return post.owner != null && ow.name !== person(post.p).name ? `Beat-It · by ${ow.name.split(" ")[0]}` : "Beat-It"; }
+    return post.kind === "challenge" ? `recorded ${fmt(post.reps)} ${EX[post.ex].toLowerCase()}` : post.kind === "workout" ? `posted a workout · ${fmt(post.reps)} reps` : `posted ${post.assets.length} ${post.assets.length > 1 ? "photos" : "photo"}`;
+  };
 
   let cur = { v: "imm", tab: "For you" }, root, _vEl = null;
 
@@ -121,15 +133,22 @@ window.Community = (function () {
     const challengers = board.filter((r) => !r.owner), me = board.find((r) => r.u.me);
     const empty = challengers.length === 0, top = board.slice(0, 3);
     const ownerScore = (board.find((r) => r.owner) || board[0]).score;
+    // Am I the competition owner viewing my own post? (owner = poster on the original attempt.)
+    const iAmOwner = person(post.p).me;
     const row = (r) => `<div class="cf-lbr${r.rank === 1 ? " top" : ""}">
       <span class="cf-lbrk r${r.rank}">${r.rank}</span>
       <span class="av" style="background-image:${grad(r.u.av)}"></span>
       <span class="nm">${r.u.me ? "You" : r.u.name.split(" ")[0]}</span>
       <span class="sc">${fmt(r.score)}<small>reps</small></span></div>`;
+    // Owner viewing their own sole-participant post: neutral "No attempts yet" (not the "Be first" nudge),
+    // the "You #1" chip is suppressed (a lone #1 is meaningless), and the CTA improves your own mark.
+    const tagTxt = empty ? (iAmOwner ? "No attempts yet" : "Be first") : challengers.length + " competing";
+    const showYou = me && !(empty && iAmOwner);
     const head = `<div class="cf-lbh">${I("trophy", 15)}<span class="tt">${EX[post.ex]} Challenge</span>
-      <span class="tag${empty ? " hot" : ""}">${empty ? "Be first" : challengers.length + " competing"}</span>
-      <span class="right">${me ? `<span class="you">You #${me.rank}</span>` : ""}${I("chevron", 18)}</span></div>`;
-    const cta = `<button class="cf-lbcta" onclick="Community.beatComp(${i},event)">${I("target", 15)} ${empty ? "Be #1 — beat " + fmt(ownerScore) : "Beat it"}</button>`;
+      <span class="tag${empty && !iAmOwner ? " hot" : ""}">${tagTxt}</span>
+      <span class="right">${showYou ? `<span class="you">You #${me.rank}</span>` : ""}${I("chevron", 18)}</span></div>`;
+    const ctaTxt = empty ? (iAmOwner ? "Set a new score" : "Be #1 — beat " + fmt(ownerScore)) : "Beat it";
+    const cta = `<button class="cf-lbcta" onclick="Community.beatComp(${i},event)">${I("target", 15)} ${ctaTxt}</button>`;
     return `<div class="cf-lb" onclick="Community.openComp(${i},event)">${head}<div class="cf-lbboard">${top.map(row).join("")}</div>${cta}</div>`;
   }
   // Facebook-style mosaic: 2 → cols · 3 → 1 big + 2 · 4 → 2×2 · 5+ → 2 top + 3 bottom, "+N"
@@ -142,10 +161,28 @@ window.Community = (function () {
     }).join("");
     return `<div class="cf-gridmedia n${show}" onclick="Community.open(${i})">${tiles}${cardBadges(post)}</div>`;
   }
-  function subHtml(post, i) {
-    if (post.kind === "competition") return `${post.t} ago · <a class="cf-chlink" onclick="Community.openComp(${i},event)">${I(EXI[post.ex], 12)} ${EX[post.ex]} Challenge</a>`;
-    if (post.ch) return `${post.t} ago · ${chLink(post, true)}`;
-    return `${post.t} ago · ${post.reps ? EX[post.ex] : post.assets.length + " " + (post.assets.length > 1 ? "photos" : "photo")}`;
+  // ── 2-line post header (native PostCard) ──
+  // Line 1: author name + a "· Beat-It" accent for any competition post. Name taps → profile.
+  function nameLine(post) {
+    const pe = person(post.p);
+    return `<b class="cf-nm" onclick="Community.openProfile('${pe.name}',event)">${pe.name}</b>`
+      + (post.kind === "competition" ? `<span class="cf-beatit">&nbsp;·&nbsp;Beat-It</span>` : "");
+  }
+  // Line 2 (quiet metadata): time · [by owner] · Profile, <challenge(s)>. Each segment is its own tap:
+  // owner/Profile → profile · single challenge → its detail · "N Challenges" → the tagged-challenges sheet.
+  function metaLine(post, i) {
+    const pe = person(post.p), segs = [`<span class="cf-mt">${post.t} ago</span>`];
+    if (post.kind === "competition") {
+      const ow = ownerOf(post);
+      if (post.owner != null && ow.name !== pe.name)
+        segs.push(`<span class="cf-msep"> · </span><span class="cf-mt">by </span><b class="cf-mseg" onclick="Community.openProfile('${ow.name}',event)">${ow.name}</b>`);
+    }
+    const chs = challengesOf(post), place = [];
+    if (post.general) place.push(`<b class="cf-mseg" onclick="Community.openProfile('${pe.name}',event)">Profile</b>`);
+    if (chs.length === 1) place.push(`<b class="cf-mseg cf-chlink" onclick="Community.openChallenge(event)">${chs[0]}</b>`);
+    else if (chs.length > 1) place.push(`<b class="cf-mseg" onclick="Community.tagsSheet(${i},event)">${chs.length} Challenges</b>`);
+    if (place.length) segs.push(`<span class="cf-msep"> · </span>${place.join('<span class="cf-msep">, </span>')}`);
+    return segs.join("");
   }
   function cardPost(post, i) {
     const pe = person(post.p), n = post.assets.length, a0 = post.assets[0];
@@ -155,7 +192,7 @@ window.Community = (function () {
     return `<div class="cf-card">
       <div class="cf-card-h">
         <div class="av" style="background-image:${grad(pe.av)}" onclick="Community.openProfile('${pe.name}',event)"></div>
-        <div class="who" onclick="Community.openProfile('${pe.name}',event)"><div class="nm"><b>${pe.name}</b></div><div class="t">${subHtml(post, i)}</div></div>
+        <div class="who"><div class="nm">${nameLine(post)}</div><div class="t">${metaLine(post, i)}</div></div>
         <button class="mm" onclick="Community.postMenu(${i})">${I("more", 18)}</button></div>
       ${media}
       ${post.kind === "competition" ? compStrip(post, i) : ""}
@@ -168,11 +205,43 @@ window.Community = (function () {
 
   // ── Post options / report sheets ──
   function postMenu(i) {
+    const owner = person(FEED[i].p).me;   // owner-only actions show only on your own posts
+    // "Not interested" removed (was a toast-only no-op); owner-only "Change where it's shown" added.
+    const placement = owner ? `<button class="cf-pm" onclick="Community._close();Community.placementSheet(${i})">${I("edit", 18)} Change where it's shown</button>` : "";
     Buzzend.sheet({ html: `<div class="cf-pmenu">
       <button class="cf-pm" onclick="Community._close();Community.share()">${I("send", 18)} Share to…</button>
       <button class="cf-pm" onclick="Community._close();Buzzend.alert({icon:'copy',title:'Link copied',message:'Post link copied to your clipboard.'})">${I("copy", 18)} Copy link</button>
-      <button class="cf-pm" onclick="Community._close();Buzzend.alert({icon:'eye',title:'Got it',message:'We will show fewer posts like this.'})">${I("eye", 18)} Not interested</button>
+      ${placement}
       <button class="cf-pm danger" onclick="Community._close();Community.reportPost()">${I("flag", 18)} Report post</button></div>` });
+  }
+  // Tagged-challenges read sheet (native TaggedChallengesSheet) — the challenges a post is tagged to;
+  // tapping a row opens that challenge. Reached from the title's "N Challenges" segment.
+  function tagsSheet(i, ev) {
+    if (ev) ev.stopPropagation(); if (guard()) return;
+    const rows = challengesOf(FEED[i]).map((c) => `<button class="cf-pm" onclick="Community._close();Community.openChallenge(event)">${I("trophy", 18)} ${c}</button>`).join("");
+    Buzzend.sheet({ html: `<div class="cf-phead">${I("trophy", 18)} <span>Tagged Challenges</span></div><div class="cf-pmenu">${rows}</div>` });
+  }
+  // Placement editor mock (native PostPlacementSheet — "Change where it's shown"), owner-only. Profile
+  // (General Post) toggle + the user's active-challenge checkboxes; Save disables when nothing is selected
+  // (that would remove every tag and delete the post — native gates it the same way).
+  function placementSheet(i) {
+    const post = FEED[i], tagged = new Set(challengesOf(post));
+    const active = S.CHALLENGES.filter((c) => c.joined && c.status === "active");
+    const cbRow = (label, on) => `<label class="cf-place">
+      <span class="cf-place-cb${on ? " on" : ""}">${I("check", 14)}</span><span class="cf-place-lb">${label}</span>
+      <input type="checkbox" ${on ? "checked" : ""} hidden onchange="Community._placeToggle(this)"></label>`;
+    const rows = cbRow("Profile (General Post)", !!post.general)
+      + (active.length ? active.map((c) => cbRow(c.n, tagged.has(c.n))).join("")
+        : `<div class="cf-place-empty">You have no active challenges to tag.</div>`);
+    Buzzend.sheet({ html: `<div class="cf-place-h"><b>Where should this show?</b><span>Choose your profile and any challenges to post this to.</span></div>
+      <div class="cf-place-list">${rows}</div>
+      <button class="cf-submit" onclick="Community._close();Buzzend.alert({icon:'success',title:'Saved',message:'Updated where this post appears.'})">Save</button>` });
+  }
+  function _placeToggle(input) {
+    input.closest(".cf-place").querySelector(".cf-place-cb").classList.toggle("on", input.checked);
+    const scope = input.closest(".bz-overlay") || document;
+    const any = [...scope.querySelectorAll(".cf-place input")].some((x) => x.checked);
+    const save = scope.querySelector(".cf-submit"); if (save) { save.disabled = !any; save.style.opacity = any ? "" : ".5"; }
   }
   function reportPost() {
     Buzzend.sheet({ html: `<div class="cf-phead">${I("flag", 18)} <span>Report post</span></div><div class="cf-report">
@@ -229,7 +298,9 @@ window.Community = (function () {
     const slides = post.assets.map((a) => `<div class="cf-vslide" style="background:${a.g}">${a.type === "video" ? `<span class="sl-wm">${I(EXI[post.ex] || "activity", 150)}</span>` : ""}</div>`).join("");
     const prog = `<div class="cf-vprog">${post.assets.map(() => `<div class="cf-seg"><i class="fill"></i></div>`).join("")}</div>`;
     const dots = post.assets.length > 1 ? `<div class="cf-vdots">${post.assets.map((a, k) => `<i class="${k === 0 ? "on" : ""}"></i>`).join("")}</div>` : "";
-    const tag = post.reps ? `<span class="cf-vtag"><span style="color:#ffd66b;display:inline-flex">${I("zap", 12)}</span> ${fmt(post.reps)} ${EX[post.ex].toLowerCase()}</span>` : (post.assets.length > 1 ? `<span class="cf-vtag">${I("image", 12)} ${post.assets.length} photos</span>` : "");
+    // Top badge shows the workout TYPE for competition (Beat-It) posts only — no badge on plain posts
+    // (native ImmersivePostViewer). Sits below the top progress bar (see .cf-vtag / .cf-vback offsets).
+    const tag = post.kind === "competition" ? `<span class="cf-vtag"><span style="color:#ffd66b;display:inline-flex">${I("zap", 12)}</span> ${EX[post.ex]}</span>` : "";
     const chip = post.ch ? `<div class="cf-vchip cf-chlink" onclick="Community.openChallenge(event)">${I(EXI[post.ex], 13)} ${post.ch}</div>` : "";
     return `<div class="cf-vpost" data-i="${i}"><div class="cf-vassets">${slides}</div><div class="cf-vscrim"></div>
       <span class="cf-vpp">${I("play", 34)}</span>${prog}${dots}${tag}
@@ -329,5 +400,5 @@ window.Community = (function () {
   function setTab(t) { cur.tab = t; render(); }
   function share() { Buzzend.alert({ icon: "share", title: "Share post", message: "Send this to friends or your story." }); }
   function start(mountEl, v) { root = mountEl; cur.v = v || "imm"; cur.tab = "For you"; render(); }
-  return { start, render, homeFeed, setTab, open, closeViewer, share, postMenu, reportPost, _close, likers, viewers, toggleLike, openProfile, openChallenge, openComp, beatComp };
+  return { start, render, homeFeed, setTab, open, closeViewer, share, postMenu, reportPost, tagsSheet, placementSheet, _placeToggle, _close, likers, viewers, toggleLike, openProfile, openChallenge, openComp, beatComp };
 })();
