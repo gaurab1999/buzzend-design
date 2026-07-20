@@ -65,6 +65,12 @@ window.PostLB = (function () {
     ownerAttempt: { user: U.kriti, score: 4, dur: 11 },
     attempts: [{ user: U.kriti, score: 4, dur: 11 }],
   };
+  // Feed card — MY own post, no challengers yet → owner-viewing-own state ("No attempts yet" · "Set a new score")
+  const COMP_MINE_EMPTY = {
+    id: "c_mine1", wt: "PUSHP", owner: U.amy,
+    ownerAttempt: { user: U.amy, score: 15, dur: 12 },
+    attempts: [{ user: U.amy, score: 15, dur: 12 }],
+  };
 
   // Main competition for the full leaderboard (SQUAT).  `standing` toggles the
   // viewer's presence → the three LeaderboardState variants (leaderboard_screen.dart:38).
@@ -152,13 +158,13 @@ window.PostLB = (function () {
       <span class="pc-sc">${score}<small>reps</small></span></div>`;
 
     if (challengers.length === 0) {
-      const o = c.ownerAttempt;
+      const o = c.ownerAttempt, iAmOwner = !!c.owner.me;   // owner viewing their own sole-participant post
       return `<div class="plbc-comp" onclick="PostLB.go('leaderboard')">
         <div class="pc-head"><span class="pc-tr">🏆</span><span class="pc-tt">${w.dn} Challenge</span>
-          <span class="pc-tag hot">Be first</span>
+          <span class="pc-tag${iAmOwner ? "" : " hot"}">${iAmOwner ? "No attempts yet" : "Be first"}</span>
           <span class="pc-right">${chev}</span></div>
         <div class="pc-board">${row(c.owner, o.score, 1)}</div>
-        <button class="pc-cta full" onclick="event.stopPropagation();PostLB.go('beatit')">${I("target", 15)} Be #1 — beat ${o.score}</button>
+        <button class="pc-cta full" onclick="event.stopPropagation();PostLB.go('beatit')">${I("target", 15)} ${iAmOwner ? "Set a new score" : "Be #1 — beat " + o.score}</button>
       </div>`;
     }
     return `<div class="plbc-comp" onclick="PostLB.go('leaderboard')">
@@ -192,11 +198,12 @@ window.PostLB = (function () {
 
   function feedCard(post, i) {
     const u = post.u, c = post.competition, w = c ? WT[c.wt] : null;
-    const sub = post.attemptOf
-      ? `${post.time} · challenged <a class="cf-chlink" onclick="event.stopPropagation();PostLB.go('leaderboard')">${first(post.attemptOf)}</a>`
-      : c
-      ? `${post.time} · <a class="cf-chlink" onclick="event.stopPropagation();PostLB.go('leaderboard')">${I(w.i, 12)} ${w.dn} Challenge</a>`
-      : `${post.time}`;
+    // Native 2-line header: line 1 = name + "· Beat-It" (competition); line 2 = time · [by <owner>].
+    const owner = c ? c.owner : u;
+    const showBy = c && owner.name !== u.name;   // attribute the ORIGINAL only when poster ≠ owner
+    const name = `<b class="cf-nm">${u.name}</b>${c ? `<span class="cf-beatit">&nbsp;·&nbsp;Beat-It</span>` : ""}`;
+    const sub = `<span class="cf-mt">${post.time}</span>`
+      + (showBy ? `<span class="cf-msep"> · </span><span class="cf-mt">by </span><b class="cf-mseg" onclick="event.stopPropagation();PostLB.go('leaderboard')">${owner.name}</b>` : "");
     const dest = c ? "leaderboard" : "video";
     const repBadge = post.repChip
       ? `<span class="cf-cbadge rep"><span class="z">${I("zap", 12)}</span>${post.repChip} reps</span>`
@@ -212,7 +219,7 @@ window.PostLB = (function () {
     return `<div class="cf-card">
       <div class="cf-card-h">
         <div class="av" style="background-image:${grad(u.av)}"></div>
-        <div class="who"><div class="nm"><b>${u.name}</b></div><div class="t">${sub}</div></div>
+        <div class="who"><div class="nm">${name}</div><div class="t">${sub}</div></div>
         <button class="mm">${I("more", 18)}</button></div>
       ${media}
       ${c ? compStrip(c) : ""}
@@ -224,6 +231,7 @@ window.PostLB = (function () {
       { u: U.riya, thumb: THUMB[0], time: "2h ago", likes: 12, views: 340, competition: COMP_SQUAT_FEED, status: { live: true, txt: "2d left" }, cap: "5 clean squats — who's beating this?" },
       { u: U.kriti, thumb: THUMB[1], time: "15d", likes: 8, views: 210, wt: "SQUAT", repChip: 2, attemptOf: U.riya, competition: COMP_SQUAT_FEED, status: { live: true, txt: "2d left" } },
       { u: U.kriti, thumb: THUMB[2], time: "1d ago", likes: 4, views: 88, competition: COMP_JJ_EMPTY, status: { live: true, txt: "5h left" }, cap: "Jumping-jack sprint — beat me!" },
+      { u: U.amy, thumb: THUMB[3], time: "30min ago", likes: 3, views: 40, competition: COMP_MINE_EMPTY, status: { live: true, txt: "6d left" }, cap: "15 push-ups — first attempt, come beat it!" },
       { u: U.gaurav, thumb: THUMB[3], time: "5min ago", likes: 120, views: "15.6k", cap: "Morning grind, done 💪" },
     ];
     return `<div class="plb-cardfeed"><div class="cf-cards">${posts.map(feedCard).join("")}</div></div>`;
@@ -237,9 +245,11 @@ window.PostLB = (function () {
   function beatIt(mode) {
     const single = mode === "single";                     // no one's beaten the owner yet → one card
     const ended = mode === "ended";                        // competition.active == false / past expiresAt
+    const viewerTop = mode === "top";                      // the VIEWER already holds #1 (isViewerTop)
     const c = mainComp("ranked"), B = rank(c.attempts);
     const target = c.ownerAttempt;                        // ownerOriginalAttempt (Target)
-    const best = single ? target : B[0];                  // single ⇒ best == owner attempt (collapse)
+    // single ⇒ best == owner attempt (collapse); viewerTop ⇒ the viewer (You) is the current #1.
+    const best = single ? target : viewerTop ? { user: U.amy, score: 14, dur: 9 } : B[0];
     const showVs = !single && best.user.name !== target.user.name;
     const w = WT[c.wt];
     const goal = best.score + 1;
@@ -249,11 +259,16 @@ window.PostLB = (function () {
     const heroLabel = ended ? "WINNING SCORE" : "SCORE TO BEAT";
     const champLine = ended
       ? `<b>${first(champ.user)}</b> won this challenge`
+      : viewerTop
+      ? `You hold #1`
       : single
       ? `<b>${first(champ.user)}</b> set the pace`
       : `<b>${first(champ.user)}</b> holds #1`;
     const goalLine = ended
       ? `Attempts are closed for this challenge`
+      // Viewer already holds #1 — they can't "take" a spot they're on; nudge them to extend the lead.
+      : viewerTop
+      ? `You hold #1 with <b>${best.score} reps</b> — post again to extend your lead`
       : single
       ? `Be first to <b>${goal}+ reps</b> to claim #1`
       : `Hit <b>${goal}+ reps</b> to take the top spot`;
@@ -281,7 +296,9 @@ window.PostLB = (function () {
     // ── how it works ──
     const steps = ended
       ? [`This challenge is now closed`, `${first(best.user)} took the win with ${best.score} reps`, `Start a challenge of your own to compete`]
-      : [`Record your ${w.dn.toLowerCase()} attempt`, `AI counts your reps live as you go`, `Beat ${best.score} reps to claim the #1 spot`];
+      : [`Record your ${w.dn.toLowerCase()} attempt`, `AI counts your reps live as you go`,
+         // Note #3 depends on whether the viewer already holds #1.
+         viewerTop ? `You already hold #1 with ${best.score} reps — post again to extend your lead` : `Beat ${best.score} reps to claim the #1 spot`];
     const how = `<div class="bi2-how"><div class="hh">How it works</div>
       ${steps.map((s, k) => `<div class="step"><span class="k">${k + 1}</span><span class="tx">${s}</span></div>`).join("")}</div>`;
 
