@@ -162,14 +162,28 @@ window.Community = (function () {
     return `<div class="cf-gridmedia n${show}" onclick="Community.open(${i})">${tiles}${cardBadges(post)}</div>`;
   }
   // ── 2-line post header (native PostCard) ──
-  // Line 1: author name + a "· Beat-It" accent for any competition post. Name taps → profile.
+  // Line 1: author name only. The post's destination/type shows as a placement label on line 2.
   function nameLine(post) {
     const pe = person(post.p);
-    return `<b class="cf-nm" onclick="Community.openProfile('${pe.name}',event)">${pe.name}</b>`
-      + (post.kind === "competition" ? `<span class="cf-beatit">&nbsp;·&nbsp;Beat-It</span>` : "");
+    return `<b class="cf-nm" onclick="Community.openProfile('${pe.name}',event)">${pe.name}</b>`;
   }
-  // Line 2 (quiet metadata): time · [by owner] · Profile, <challenge(s)>. Each segment is its own tap:
-  // owner/Profile → profile · single challenge → its detail · "N Challenges" → the tagged-challenges sheet.
+  // Line 2 (quiet metadata): time · [by owner] · <placement label>. The placement label is a single
+  // category — Competitions · Profile · Challenge · Profile & Challenge — matching where the post lives:
+  //   competition post → "Competitions" (→ leaderboard)
+  //   profile only → "Profile"  ·  challenge only → "Challenge"  ·  both → "Profile & Challenge"
+  // Each word is its own tap: Profile → profile · Challenge → its detail (1) / tagged sheet (many).
+  function placementLabel(post, i) {
+    const pe = person(post.p);
+    if (post.kind === "competition")
+      return `<b class="cf-mseg cf-chlink" onclick="Community.openComp(${i},event)">Competitions</b>`;
+    const chs = challengesOf(post), hasProf = !!post.general, hasCh = chs.length > 0;
+    const prof = `<b class="cf-mseg" onclick="Community.openProfile('${pe.name}',event)">Profile</b>`;
+    const chal = `<b class="cf-mseg cf-chlink" onclick="Community.${chs.length > 1 ? `tagsSheet(${i},event)` : "openChallenge(event)"}">Challenge</b>`;
+    if (hasProf && hasCh) return `${prof}<span class="cf-msep"> &amp; </span>${chal}`;
+    if (hasProf) return prof;
+    if (hasCh) return chal;
+    return "";
+  }
   function metaLine(post, i) {
     const pe = person(post.p), segs = [`<span class="cf-mt">${post.t} ago</span>`];
     if (post.kind === "competition") {
@@ -177,11 +191,8 @@ window.Community = (function () {
       if (post.owner != null && ow.name !== pe.name)
         segs.push(`<span class="cf-msep"> · </span><span class="cf-mt">by </span><b class="cf-mseg" onclick="Community.openProfile('${ow.name}',event)">${ow.name}</b>`);
     }
-    const chs = challengesOf(post), place = [];
-    if (post.general) place.push(`<b class="cf-mseg" onclick="Community.openProfile('${pe.name}',event)">Profile</b>`);
-    if (chs.length === 1) place.push(`<b class="cf-mseg cf-chlink" onclick="Community.openChallenge(event)">${chs[0]}</b>`);
-    else if (chs.length > 1) place.push(`<b class="cf-mseg" onclick="Community.tagsSheet(${i},event)">${chs.length} Challenges</b>`);
-    if (place.length) segs.push(`<span class="cf-msep"> · </span>${place.join('<span class="cf-msep">, </span>')}`);
+    const place = placementLabel(post, i);
+    if (place) segs.push(`<span class="cf-msep"> · </span>${place}`);
     return segs.join("");
   }
   function cardPost(post, i) {
