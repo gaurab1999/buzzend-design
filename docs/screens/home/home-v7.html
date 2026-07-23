@@ -80,8 +80,6 @@
     </div>
   </div>
 
-  <div id="pl-sheet-host"></div>
-
   <script src="../../js/components/dialog.js"></script>
   <script src="../../js/components/icons.js"></script>
   <script src="../../js/components/upload-banner.js"></script>
@@ -103,68 +101,12 @@
         + (state === "new" ? H.checklist() : "")
         + P.challengesPro(state, d)          // active challenges — ring progress + group chat
         + P.topActivities(state, d)          // Top activities — horizontal scroll · Top / Friends
-        + Community.homeFeed(state)          // community — full-bleed immersive, multi-asset, tap → post detail
-        + placementVariations();             // DESIGN: placement-label option variations, at the feed bottom
+        + Community.homeFeed(state);         // community — full-bleed immersive, multi-asset, tap → post detail
       document.getElementById("content").innerHTML = h;
       window.Icons.init(document.getElementById("content"));
       document.querySelectorAll(".state-switch button").forEach(b => b.classList.toggle("active", b.dataset.st === state));
     }
     function setState(s){ render(s); }
-
-    // ── DESIGN: placement-label option variations ──────────────────────────────────────────────────────
-    // Same four sample posts rendered four ways, so we can pick how a post's destinations (Competitions ·
-    // Profile · Challenge — any combination) show in the card header. Icons: trophy=competition, user=profile,
-    // flag=challenge. Reuses the loaded community.css (.cf-card/.cf-card-h) + the data-icon system.
-    // Sample posts, worst-case first. `chs` = tagged challenge NAMES (its length drives the label; the names
-    // fill Option C's "+N" sheet).
-    const PL_CASES = [
-      { nm: "Ranjeet", av: 0, t: "2h", by: "Kriti", comp: true,  prof: true,  chs: ["30-Day Squats"] },
-      { nm: "Avinaya", av: 1, t: "3h", by: null,    comp: false, prof: true,  chs: ["Jumping Jack Blast", "Cardio Kings"] },
-      { nm: "Kriti",   av: 2, t: "1h", by: null,    comp: true,  prof: false, chs: [] },
-      { nm: "Deepa",   av: 1, t: "5h", by: null,    comp: false, prof: false, chs: ["30-Day Squats"] },
-    ];
-    const PL_AV = ["linear-gradient(135deg,#6a8caf,#33566f)", "linear-gradient(135deg,#c98b6b,#7f4a33)", "linear-gradient(135deg,#6bbf8a,#337f56)"];
-    const plIcon = (n, s) => `<i data-icon="${n}" data-size="${s}"></i>`;
-
-    function placementVariations() {
-      const I = plIcon;
-      const meta = (c) => `<span class="cf-mt">${c.t}</span>` +
-        (c.by ? `<span class="cf-msep"> · </span><span class="cf-mt">by </span><b class="cf-mseg">${c.by}</b>` : "");
-      const seg = (t, p) => `<span class="cf-msep"> · </span><b class="cf-mseg${p ? " cf-chlink" : ""}">${t}</b>`;
-      const A = (c) => { const p = []; if (c.comp) p.push(`<span class="pl-pill comp">${I("trophy",12)}Comp</span>`); if (c.prof) p.push(`<span class="pl-pill">${I("user",12)}Profile</span>`); if (c.chs.length) p.push(`<span class="pl-pill">${I("flag",12)}Challenge</span>`); return `<div class="t" style="white-space:normal">${meta(c)}${p.length ? `<div class="pl-pills">${p.join("")}</div>` : ""}</div>`; };
-      const B = (c) => { const ic = []; if (c.comp) ic.push(`<span class="pl-ico">${I("trophy",15)}</span>`); if (c.prof) ic.push(`<span class="pl-ico mut">${I("user",15)}</span>`); if (c.chs.length) ic.push(`<span class="pl-ico">${I("flag",15)}${c.chs.length > 1 ? `<b class="pl-cnt">${c.chs.length}</b>` : ""}</span>`); return `<div class="t">${meta(c)}${ic.length ? `<span class="cf-msep"> · </span><span class="pl-icos">${ic.join("")}</span>` : ""}</div>`; };
-      const C = (c, ix) => { const cats = []; if (c.comp) cats.push(["Competitions",1]); if (c.chs.length) cats.push(["Challenge",1]); if (c.prof) cats.push(["Profile",0]); if (!cats.length) return `<div class="t">${meta(c)}</div>`; const l = cats[0], x = cats.length - 1; return `<div class="t">${meta(c)}${seg(l[0],l[1])}${x ? `<span class="pl-more" onclick="plSheet(${ix})">+${x}</span>` : ""}</div>`; };
-      const Drow = (c) => { const ch = []; if (c.comp) ch.push(`<span class="pl-chip comp">${I("trophy",13)}Competition</span>`); if (c.prof) ch.push(`<span class="pl-chip">${I("user",13)}Profile</span>`); if (c.chs.length) ch.push(`<span class="pl-chip">${I("flag",13)}Challenge</span>`); return ch.length ? `<div class="pl-row">${ch.join("")}</div>` : ""; };
-      const head = (c, l2) => `<div class="cf-card" style="padding:12px 0"><div class="cf-card-h"><div class="av" style="background-image:${PL_AV[c.av]}"></div><div class="who"><div class="nm"><b class="cf-nm">${c.nm}</b></div>${l2}</div><button class="mm">${I("more",18)}</button></div>`;
-      const cAC = (c, ix, fn) => head(c, fn(c, ix)) + `</div>`;
-      const cD = (c) => head(c, `<div class="t">${meta(c)}</div>`) + Drow(c) + `</div>`;
-      const OPTS = [
-        ["A", "Inline icon pills", "Icon+word pills on the metadata line (wraps if needed). Compact, scannable, each pill tappable.", (c, ix) => cAC(c, ix, A)],
-        ["B", "Icons only + count", "Tiny destination icons on the quiet line; the challenge count rides the flag. Shortest.", (c, ix) => cAC(c, ix, B)],
-        ["C", "Lead word + overflow", "One primary destination as a word; the rest collapse into +N — tap it for the sheet. Always one short line.", (c, ix) => cAC(c, ix, C)],
-        ["D", "Dedicated chip row", "Placement gets its own row of icon+label chips under the name/time. Clearest; costs a row of height.", (c, ix) => cD(c)],
-      ];
-      return `<div class="pl-sec"><div class="pl-sech">Placement label — options (design)</div>` +
-        `<div class="pl-sesub">Same 4 sample posts, 4 ways. trophy=Competition · user=Profile · flag=Challenge. (Option C: tap “+N”.)</div>` +
-        OPTS.map((o) => `<div class="pl-opt"><div class="pl-k">Option ${o[0]}</div><div class="pl-ti">${o[1]}</div><div class="pl-de">${o[2]}</div></div>` + PL_CASES.map((c, ix) => o[3](c, ix)).join("")).join("") +
-        `</div>`;
-    }
-
-    // Option C "+N" overflow sheet — lists every destination the post lives in (centered title, tidy rows).
-    function plSheet(i) {
-      const c = PL_CASES[i];
-      const rows = [];
-      if (c.comp) rows.push(plSheetRow("trophy", "Competitions", "Post leaderboard", false));
-      if (c.prof) rows.push(plSheetRow("user", "Profile", c.nm + "'s profile", true));
-      c.chs.forEach((name) => rows.push(plSheetRow("flag", name, "Challenge", false)));
-      const host = document.getElementById("pl-sheet-host");
-      host.innerHTML = `<div class="pl-scrim" onclick="if(event.target===this)plCloseSheet()"><div class="pl-sheet"><div class="pl-grip"></div><div class="pl-stitle">Where this post appears</div>${rows.join('<div class="pl-sdiv"></div>')}</div></div>`;
-      window.Icons.init(host);
-    }
-    function plSheetRow(icon, title, sub, mut) {
-      return `<div class="pl-srow" onclick="plCloseSheet()"><div class="pl-sic${mut ? " mut" : ""}">${plIcon(icon, 20)}</div><div class="pl-stx"><div class="a">${title}</div><div class="b">${sub}</div></div><span class="pl-schev">${plIcon("chevron", 18)}</span></div>`;
-    }
-    function plCloseSheet() { document.getElementById("pl-sheet-host").innerHTML = ""; }
 
     render(new URLSearchParams(location.search).get("state") || "full");
   </script>
