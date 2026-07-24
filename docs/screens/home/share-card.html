@@ -1,22 +1,17 @@
-<title>Buzzend · Share Activity Card</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-palette="teal" data-font="nunito">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buzzend · Share Activity Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- shared token system: color set + font + theme carry over from the index selection -->
+  <link rel="stylesheet" href="../../css/tokens.css" />
+  <link rel="stylesheet" href="../../css/palettes.css" />
+  <link rel="stylesheet" href="../../css/fonts.css" />
 <style>
-  /* app theme tokens (teal palette) — light + dark */
-  :root{
-    --canvas:#f5f5f5; --surface:#ffffff; --surface-alt:#f0f1f0; --text-primary:#373737; --text-secondary:#5f5f5f;
-    --text-tertiary:#8f9190; --border:#d9d9d9; --divider:#e5e5e5; --primary:#008080; --primary-deep:#006666; --accent:#ffa828;
-    --shadow-card:0 1px 3px rgba(36,38,38,.06),0 6px 20px rgba(36,38,38,.05); --font:"Nunito",-apple-system,system-ui,sans-serif;
-    --page:#eceeec;
-  }
-  @media (prefers-color-scheme:dark){ :root{ --canvas:#0f1416; --surface:#1a2123; --surface-alt:#232b2d; --text-primary:#f5f6f7;
-    --text-secondary:#b8bdbd; --text-tertiary:#7e8585; --border:#2e3739; --divider:#2e3739; --shadow-card:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35); --page:#0c110f; } }
-  :root[data-theme="dark"]{ --canvas:#0f1416; --surface:#1a2123; --surface-alt:#232b2d; --text-primary:#f5f6f7; --text-secondary:#b8bdbd;
-    --text-tertiary:#7e8585; --border:#2e3739; --divider:#2e3739; --shadow-card:0 1px 3px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35); --page:#0c110f; }
-  :root[data-theme="light"]{ --canvas:#f5f5f5; --surface:#ffffff; --surface-alt:#f0f1f0; --text-primary:#373737; --text-secondary:#5f5f5f;
-    --text-tertiary:#8f9190; --border:#d9d9d9; --divider:#e5e5e5; --shadow-card:0 1px 3px rgba(36,38,38,.06),0 6px 20px rgba(36,38,38,.05); --page:#eceeec; }
-
   *{ box-sizing:border-box; }
-  body{ margin:0; background:var(--page); color:var(--text-primary); font-family:var(--font); -webkit-font-smoothing:antialiased; padding:30px 20px 70px; }
+  body{ margin:0; background:var(--bg-canvas); color:var(--text-primary); font-family:var(--font); -webkit-font-smoothing:antialiased; padding:30px 20px 70px; }
   .wrap{ max-width:1120px; margin:0 auto; }
   h1{ font:900 26px var(--font); letter-spacing:-.4px; margin:0 0 6px; }
   .lede{ font:600 14.5px var(--font); color:var(--text-secondary); margin:0 0 22px; max-width:74ch; line-height:1.55; }
@@ -86,6 +81,8 @@
 
   @media (max-width:700px){ .bar{ position:static; } }
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <h1>Share your day — themed variations</h1>
@@ -175,6 +172,10 @@
   document.getElementById("segDay").addEventListener("click",e=>{const x=e.target.closest("button"); if(x){DK=x.dataset.day; render();}});
   document.getElementById("segDest").addEventListener("click",e=>{const x=e.target.closest("button"); if(x){DEST=x.dataset.dest; render();}});
   document.getElementById("deck").addEventListener("click",e=>{const x=e.target.closest("[data-setdest]"); if(x){DEST=x.dataset.setdest; render();}});
-  document.getElementById("tt").addEventListener("click",()=>{ const r=document.documentElement; const dark=(r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"))==="dark"; r.setAttribute("data-theme",dark?"light":"dark"); });
+  document.getElementById("tt").addEventListener("click",()=>{ if(window.toggleTheme) toggleTheme(); });
   render();
 </script>
+<!-- shared: applies the saved color set / font / theme from the index selection -->
+<script src="../../js/app.js"></script>
+</body>
+</html>
